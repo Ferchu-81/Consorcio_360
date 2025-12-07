@@ -2,6 +2,8 @@ import 'dart:typed_data';
 
 import 'package:consorcio_360/core/state/current_context_notifier.dart';
 import 'package:consorcio_360/data/models/usuario_contexto.dart';
+import 'package:consorcio_360/features/reclamos/presentation/reclamo_adjuntos_screen.dart';
+import 'package:consorcio_360/features/reclamos/presentation/reclamos_utils.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -12,10 +14,6 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'reclamo_adjuntos_screen.dart';
-import 'reclamos_utils.dart';
-
-/// Detalle de reclamo + mensajes tipo chat + adjuntos + export PDF.
 class ReclamoDetailScreen extends StatefulWidget {
   final String reclamoId;
 
@@ -130,6 +128,7 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
       });
 
       await _loadAdjuntosSolo();
+
       _scrollToBottom();
     } on PostgrestException catch (e, st) {
       debugPrint(
@@ -228,53 +227,49 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
   }
 
   Future<void> _uploadAttachment({
-    required Uint8List bytes,
+    required List<int> bytes,
     required String fileName,
     required String mimeType,
   }) async {
-    final supabase = Supabase.instance.client;
-    final user = supabase.auth.currentUser;
-    if (user == null) return;
+    if (!mounted) return;
 
-    setState(() {
-      _subiendoAdjunto = true;
-    });
+    setState(() => _subiendoAdjunto = true);
 
     try {
-      final sanitizedName = fileName.replaceAll(' ', '_');
-      final path =
-          'reclamos/${widget.reclamoId}/${DateTime.now().millisecondsSinceEpoch}_$sanitizedName';
+      final supabase = Supabase.instance.client;
 
-      await supabase.storage
-          .from('reclamos')
-          .uploadBinary(
+      final path =
+          'reclamos/${widget.reclamoId}/${DateTime.now().millisecondsSinceEpoch}_$fileName';
+
+      await supabase.storage.from('reclamos').uploadBinary(
             path,
-            bytes,
+            Uint8List.fromList(bytes),
             fileOptions: FileOptions(contentType: mimeType),
           );
 
       await supabase.from('reclamo_adjuntos').insert({
         'reclamo_id': widget.reclamoId,
-        'usuario_id': user.id,
         'archivo_nombre': fileName,
-        'storage_path': path,
         'mime_type': mimeType,
+        'storage_path': path,
+        'fecha_subida': DateTime.now().toIso8601String(),
       });
 
-      await _loadAdjuntosSolo();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Adjunto cargado correctamente')),
+      );
     } catch (e, st) {
       debugPrint(
         'Error al subir adjunto en reclamo ${widget.reclamoId}: $e\n$st',
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se pudo adjuntar el archivo.')),
+        const SnackBar(content: Text('No se pudo cargar el adjunto')),
       );
     } finally {
       if (mounted) {
-        setState(() {
-          _subiendoAdjunto = false;
-        });
+        setState(() => _subiendoAdjunto = false);
       }
     }
   }
@@ -283,7 +278,9 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
     if (_subiendoAdjunto) return;
     final xfile = await _imagePicker.pickImage(
       source: ImageSource.camera,
-      imageQuality: 80,
+      imageQuality: 70,
+      maxWidth: 1600,
+      maxHeight: 1600,
     );
     if (xfile == null) return;
 
@@ -297,7 +294,12 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
 
   Future<void> _pickFromGallery() async {
     if (_subiendoAdjunto) return;
-    final xfile = await _imagePicker.pickImage(source: ImageSource.gallery);
+    final xfile = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+      maxWidth: 1600,
+      maxHeight: 1600,
+    );
     if (xfile == null) return;
 
     final bytes = await xfile.readAsBytes();
@@ -318,8 +320,19 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
     );
 
     if (result == null || result.files.isEmpty) return;
-    final file = result.files.single;
-    if (file.bytes == null) return;
+      final file = result.files.single;
+      if (file.bytes == null) return;
+
+    const maxSizeBytes = 5 * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('El archivo es muy grande (max. 5 MB).'),
+        ),
+      );
+      return;
+    }
 
     await _uploadAttachment(
       bytes: file.bytes!,
@@ -330,12 +343,27 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
 
   Future<void> _openAdjunto(Map<String, dynamic> adj) async {
     final supabase = Supabase.instance.client;
-    final path = adj['storage_path']?.toString() ?? '';
-    if (path.isEmpty) return;
+
+    final rawPath = (adj['storage_path'] ??
+            adj['path'] ??
+            adj['url_archivo'] ??
+            adj['archivo_url'] ??
+            adj['url'] ??
+            '')
+        .toString()
+        .trim();
+
+    if (rawPath.isEmpty) return;
 
     try {
-      final url =
-          await supabase.storage.from('reclamos').createSignedUrl(path, 60 * 60);
+      String url;
+      if (rawPath.startsWith('http')) {
+        url = rawPath;
+      } else {
+        url = await supabase.storage
+            .from('reclamos')
+            .createSignedUrl(rawPath, 60 * 60);
+      }
 
       final uri = Uri.parse(url);
       final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -570,8 +598,6 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
     );
   }
 
-  /// --------- PDF helpers ---------
-
   String _buildEmisorLabelForPdf(
     Map<String, dynamic> mensaje,
     Map<String, dynamic> usuario,
@@ -587,13 +613,13 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
 
     if (soyAdmin) {
       if (esMio) {
-        return 'Administrador – $nombreLabel';
+        return 'Administrador - $nombreLabel';
       } else {
         final unidadText = unidadCodigo.isEmpty ? '' : 'Unidad $unidadCodigo';
         if (unidadText.isEmpty) {
-          return 'Propietario / Morador – $nombreLabel';
+          return 'Propietario / Morador - $nombreLabel';
         }
-        return '$nombreLabel – $unidadText';
+        return '$nombreLabel - $unidadText';
       }
     } else {
       if (esMio) {
@@ -603,9 +629,9 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
         if (unidadText.isNotEmpty) {
           partes.add(unidadText);
         }
-        return partes.join(' – ');
+        return partes.join(' - ');
       } else {
-        return 'Administrador – $nombreLabel';
+        return 'Administrador - $nombreLabel';
       }
     }
   }
@@ -619,10 +645,12 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
     final doc = pw.Document();
     final estadoActual = _reclamo!['estado']?.toString() ?? 'PENDIENTE';
     final estadoLabel = formatEnumLabel(estadoActual);
-    final prioridadLabel =
-        formatEnumLabel(_reclamo!['prioridad']?.toString() ?? '');
-    final unidadCodigo =
-        (_reclamo!['unidad']?['codigo'] ?? '').toString().trim();
+    final prioridadLabel = formatEnumLabel(
+      _reclamo!['prioridad']?.toString() ?? '',
+    );
+    final unidadCodigo = (_reclamo!['unidad']?['codigo'] ?? '')
+        .toString()
+        .trim();
     final descripcion = (_reclamo!['descripcion'] ?? '').toString().trim();
 
     final mensajesRows = <List<String>>[];
@@ -746,8 +774,9 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
 
   Future<void> _exportPdf() async {
     final contexto = context.read<CurrentContextNotifier>().current;
-    final unidadCodigo =
-        (_reclamo?['unidad']?['codigo'] ?? '').toString().trim();
+    final unidadCodigo = (_reclamo?['unidad']?['codigo'] ?? '')
+        .toString()
+        .trim();
     final bytes = await _buildPdfBytes();
     if (!mounted) return;
     if (bytes.isEmpty) return;
@@ -758,8 +787,6 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
 
     await Printing.sharePdf(bytes: bytes, filename: fileName);
   }
-
-  /// --------- UI ---------
 
   @override
   Widget build(BuildContext context) {
@@ -790,8 +817,13 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
 
     final estadoActual = _reclamo!['estado']?.toString() ?? 'PENDIENTE';
     final estadoLabel = formatEnumLabel(estadoActual);
-    final unidadCodigo =
-        (_reclamo!['unidad']?['codigo'] ?? '').toString().trim();
+    final unidadCodigo = (_reclamo!['unidad']?['codigo'] ?? '')
+        .toString()
+        .trim();
+    final descripcion = (_reclamo!['descripcion'] ?? '').toString();
+    final prioridadLabel = formatEnumLabel(
+      _reclamo!['prioridad']?.toString() ?? '',
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -806,7 +838,6 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
       ),
       body: Column(
         children: [
-          // Encabezado compacto
           Card(
             margin: const EdgeInsets.fromLTRB(12, 8, 12, 4),
             shape: RoundedRectangleBorder(
@@ -831,70 +862,64 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
                       'Tipo: ${_reclamo!['tipo']}',
                       style: theme.textTheme.bodySmall,
                     ),
-                  const SizedBox(height: 4),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 4,
-                    children: [
-                      Chip(
-                        label: Text(
-                          'Prioridad: '
-                          '${formatEnumLabel(_reclamo!['prioridad']?.toString() ?? '')}',
-                        ),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (unidadCodigo.isNotEmpty)
-                        Chip(
-                          label: Text('Unidad $unidadCodigo'),
-                          visualDensity: VisualDensity.compact,
+                      Expanded(
+                        child: Wrap(
+                          spacing: 6,
+                          runSpacing: 4,
+                          children: [
+                            if (unidadCodigo.isNotEmpty)
+                              Chip(
+                                label: Text('Unidad $unidadCodigo'),
+                                visualDensity: VisualDensity.compact,
+                              ),
+                            Chip(
+                              label: Text('Prioridad: $prioridadLabel'),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ],
                         ),
+                      ),
                       const SizedBox(width: 8),
                       if (esAdmin)
-                        Expanded(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Estado: ',
-                                style: theme.textTheme.bodySmall,
-                              ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('Estado:', style: theme.textTheme.bodySmall),
+                            const SizedBox(width: 4),
+                            DropdownButton<String>(
+                              value: estadoActual,
+                              underline: const SizedBox.shrink(),
+                              items: _estadosPosibles
+                                  .map(
+                                    (e) => DropdownMenuItem(
+                                      value: e,
+                                      child: Text(formatEnumLabel(e)),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: _cambiandoEstado
+                                  ? null
+                                  : (value) {
+                                      if (value != null) {
+                                        _cambiarEstado(value);
+                                      }
+                                    },
+                            ),
+                            if (_cambiandoEstado) ...[
                               const SizedBox(width: 4),
-                              DropdownButton<String>(
-                                value: estadoActual,
-                                underline: const SizedBox.shrink(),
-                                items: _estadosPosibles
-                                    .map(
-                                      (e) => DropdownMenuItem(
-                                        value: e,
-                                        child: Text(formatEnumLabel(e)),
-                                      ),
-                                    )
-                                    .toList(),
-                                onChanged: _cambiandoEstado
-                                    ? null
-                                    : (value) {
-                                        if (value != null) {
-                                          _cambiarEstado(value);
-                                        }
-                                      },
-                              ),
-                              if (_cambiandoEstado) ...[
-                                const SizedBox(width: 4),
-                                const SizedBox(
-                                  height: 16,
-                                  width: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
+                              const SizedBox(
+                                height: 16,
+                                width: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
                                 ),
-                              ],
+                              ),
                             ],
-                          ),
+                          ],
                         )
                       else
                         Chip(
@@ -903,12 +928,11 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
                         ),
                     ],
                   ),
-                  if (_reclamo!['descripcion'] != null &&
-                      (_reclamo!['descripcion'] as String).trim().isNotEmpty)
+                  if (descripcion.trim().isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 6.0),
                       child: Text(
-                        _reclamo!['descripcion'] as String,
+                        descripcion,
                         style: theme.textTheme.bodyMedium,
                       ),
                     ),
@@ -928,8 +952,6 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
               ),
             ),
           ),
-
-          // Mensajes
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
@@ -943,8 +965,9 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
 
                 final usuarioMap =
                     (m['usuario'] as Map<String, dynamic>?) ?? {};
-                final nombreOtro =
-                    (usuarioMap['nombre'] ?? '').toString().trim();
+                final nombreOtro = (usuarioMap['nombre'] ?? '')
+                    .toString()
+                    .trim();
 
                 String etiqueta;
                 if (esMio) {
@@ -953,7 +976,7 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
                     partes.add(contexto!.consorcioNombre);
                   }
                   partes.add(fechaStr);
-                  etiqueta = partes.join(' · ');
+                  etiqueta = partes.join(' - ');
                 } else {
                   final partes = <String>[];
                   if (unidadCodigo.isNotEmpty) {
@@ -965,12 +988,13 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
                     partes.add('Vecino');
                   }
                   partes.add(fechaStr);
-                  etiqueta = partes.join(' · ');
+                  etiqueta = partes.join(' - ');
                 }
 
                 return Align(
-                  alignment:
-                      esMio ? Alignment.centerRight : Alignment.centerLeft,
+                  alignment: esMio
+                      ? Alignment.centerRight
+                      : Alignment.centerLeft,
                   child: InkWell(
                     onLongPress: () => _onLongPressMensaje(m, esMio),
                     child: Container(
@@ -1007,8 +1031,6 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
               },
             ),
           ),
-
-          // Input para nuevo mensaje
           SafeArea(
             top: false,
             child: Padding(
@@ -1044,8 +1066,8 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
                   ),
                   const SizedBox(width: 8),
                   IconButton(
-                    onPressed: _enviando ||
-                            _mensajeController.text.trim().isEmpty
+                    onPressed:
+                        _enviando || _mensajeController.text.trim().isEmpty
                         ? null
                         : _enviarMensaje,
                     icon: _enviando

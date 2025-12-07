@@ -118,12 +118,6 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
     await _changeContext();
   }
 
-  void _openConsorcioReclamos() {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const ConsorcioReclamosScreen()));
-  }
-
   @override
   Widget build(BuildContext context) {
     final current = context.watch<CurrentContextNotifier>();
@@ -140,9 +134,13 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
       );
     }
 
-    Widget body;
+    final bool esAdmin = contexto.rol == 'ADMIN_CONSORCIO';
+
+    final Widget body;
     if (_selectedIndex == 0) {
-      body = const ReclamosTab();
+      body = esAdmin
+          ? const ConsorcioReclamosScreen()
+          : const ReclamosTab(); // Reclamos (admin ve tablero general)
     } else if (_selectedIndex == 1) {
       body = const PlaceholderFeatureScreen(titulo: 'Expensas');
     } else {
@@ -150,7 +148,6 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
     }
 
     final tituloSeccion = _tituloSeccion();
-    final bool esAdmin = contexto.rol == 'ADMIN_CONSORCIO';
 
     return Scaffold(
       appBar: AppBar(
@@ -163,7 +160,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${contexto.consorcioNombre} – Unidad ${contexto.unidadCodigo}',
+              '${contexto.consorcioNombre} - Unidad ${contexto.unidadCodigo}',
               style: const TextStyle(fontSize: 14),
             ),
             Text(tituloSeccion, style: const TextStyle(fontSize: 12)),
@@ -179,12 +176,6 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
               onPressed: _confirmChangeContext,
             ),
           ),
-          if (esAdmin && _selectedIndex == 0)
-            IconButton(
-              tooltip: 'Reclamos del consorcio',
-              icon: const Icon(Icons.list_alt),
-              onPressed: _openConsorcioReclamos,
-            ),
           IconButton(
             tooltip: 'Cerrar sesion',
             icon: const Icon(Icons.logout),
@@ -198,7 +189,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
         onTap: _onTabTapped,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.report_gmailerrorred_outlined),
+            icon: Icon(Icons.home_repair_service_outlined),
             label: 'Reclamos',
           ),
           BottomNavigationBarItem(
