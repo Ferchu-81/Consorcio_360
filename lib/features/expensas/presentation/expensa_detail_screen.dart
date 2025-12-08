@@ -2,9 +2,11 @@ import 'package:consorcio_360/core/state/current_context_notifier.dart';
 import 'package:consorcio_360/data/models/expensa.dart';
 import 'package:consorcio_360/data/models/pago_expensa.dart';
 import 'package:consorcio_360/data/repositories/expensas_repository.dart';
+import 'package:consorcio_360/features/expensas/presentation/expensa_pdf_service.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensas_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:printing/printing.dart';
 
 const bool kDemoPagosHabilitado = true;
 
@@ -109,6 +111,31 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
     }
   }
 
+  Future<void> _onVerComprobantePressed(PagoExpensa pago) async {
+    final contexto = context.read<CurrentContextNotifier>().current;
+    final consorcioNombre =
+        contexto?.consorcioNombre ?? _currentExpensa.consorcioId;
+    final unidadCodigo = contexto?.unidadCodigo ?? _currentExpensa.unidadId;
+    final moradorNombre = ''; // No se almacena en contexto actualmente.
+
+    try {
+      final bytes = await ExpensaPdfService.buildComprobantePago(
+        expensa: _currentExpensa,
+        pago: pago,
+        consorcioNombre: consorcioNombre,
+        unidadCodigo: unidadCodigo,
+        moradorNombre: moradorNombre,
+      );
+
+      await Printing.layoutPdf(onLayout: (_) async => bytes);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al generar comprobante: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -117,6 +144,8 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
     final unidadLabel =
         context.watch<CurrentContextNotifier>().current?.unidadCodigo ??
         expensa.unidadId;
+    final estaPagada = expensa.estado == 'PAGADA';
+    final tienePagos = _pagos.isNotEmpty;
 
     if (_loading) {
       return Scaffold(
@@ -225,6 +254,17 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
               const SizedBox(height: 4),
               const Text(
                 'Usa este boton solo en modo demo. El pago real con Mercado Pago se conectara despues.',
+              ),
+            ],
+            if (estaPagada && tienePagos) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.picture_as_pdf),
+                  label: const Text('Ver comprobante'),
+                  onPressed: () => _onVerComprobantePressed(_pagos.first),
+                ),
               ),
             ],
             const SizedBox(height: 18),

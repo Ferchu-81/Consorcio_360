@@ -22,6 +22,7 @@ class ExpensasRepository {
           moneda
         ''')
         .eq('unidad_id', unidadId)
+        .neq('estado', 'ANULADA')
         .order('periodo', ascending: false);
 
     final list = List<Map<String, dynamic>>.from(data);
@@ -147,7 +148,15 @@ class ExpensasRepository {
         .eq('consorcio_id', consorcioId)
         .order('codigo', ascending: true);
 
-    return List<Map<String, dynamic>>.from(data);
+    final unidades = List<Map<String, dynamic>>.from(data);
+    // Asegura no duplicar la opción GLOBAL que se agrega manualmente en la UI.
+    return unidades
+        .where(
+          (u) =>
+              (u['id']?.toString().toUpperCase() ?? '') != 'GLOBAL' &&
+              (u['codigo']?.toString().toUpperCase() ?? '') != 'GLOBAL',
+        )
+        .toList();
   }
 
   /// Inserta pago manual de demo y marca la expensa como pagada.

@@ -1,8 +1,10 @@
 ﻿import 'package:consorcio_360/data/models/expensa.dart';
 import 'package:consorcio_360/data/models/pago_expensa.dart';
 import 'package:consorcio_360/data/repositories/expensas_repository.dart';
+import 'package:consorcio_360/features/expensas/presentation/expensa_pdf_service.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensas_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:printing/printing.dart';
 
 /// Detalle exclusivo para administrador, con cambio de estado.
 class ExpensaAdminDetailScreen extends StatefulWidget {
@@ -31,13 +33,19 @@ class _ExpensaAdminDetailScreenState extends State<ExpensaAdminDetailScreen> {
   late Future<List<PagoExpensa>> _futurePagos;
   String _estadoSeleccionado = 'PENDIENTE';
   bool _guardandoEstado = false;
+  List<PagoExpensa> _pagos = [];
 
   @override
   void initState() {
     super.initState();
     _expensaActual = widget.expensa;
     _estadoSeleccionado = _expensaActual.estado;
-    _futurePagos = _repo.fetchPagosDeExpensa(_expensaActual.id);
+    _futurePagos = _repo.fetchPagosDeExpensa(_expensaActual.id).then((value) {
+      if (mounted) {
+        setState(() => _pagos = value);
+      }
+      return value;
+    });
   }
 
   Future<void> _actualizarEstado() async {
@@ -98,12 +106,69 @@ class _ExpensaAdminDetailScreenState extends State<ExpensaAdminDetailScreen> {
     }
   }
 
-  Future<void> _onVerComprobantePressed() async {
-    // Placeholder: integrar generación/recuperación de comprobante y visor.
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Comprobante de pago: TODO implementar')),
-    );
+  Future<void> _onVerComprobantePressed(PagoExpensa pago) async {
+    final consorcioNombre = widget.consorcioNombre ?? widget.consorcioId;
+    final unidadCodigo = widget.unidadCodigo ?? _expensaActual.unidadId;
+    const moradorNombre = ''; // No almacenado por ahora.
+
+    try {
+      final bytes = await ExpensaPdfService.buildComprobantePago(
+        expensa: _expensaActual,
+        pago: pago,
+        consorcioNombre: consorcioNombre,
+        unidadCodigo: unidadCodigo,
+        moradorNombre: moradorNombre,
+      );
+
+      await Printing.layoutPdf(onLayout: (_) async => bytes);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al generar comprobante: $e')),
+      );
+    }
+  }
+
+  Future<void> _confirmarAnulacion() async {
+    if (_expensaActual.estado == 'ANULADA') return;
+
+    final ok = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Anular expensa'),
+            content: const Text(
+              'Estas seguro? La expensa quedara anulada y no sera visible '
+              'para los moradores.',
+            ),
+            actions: [
+              TextButton(
+                child: const Text('Cancelar'),
+                onPressed: () => Navigator.of(context).pop(false),
+              ),
+              ElevatedButton(
+                child: const Text('Anular'),
+                onPressed: () => Navigator.of(context).pop(true),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+
+    if (!ok) return;
+
+    try {
+      await _repo.actualizarEstadoExpensa(
+        expensaId: _expensaActual.id,
+        nuevoEstado: 'ANULADA',
+      );
+      if (!mounted) return;
+      Navigator.of(context).pop(true);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al anular expensa: $e')),
+      );
+    }
   }
 
   @override
@@ -112,15 +177,31 @@ class _ExpensaAdminDetailScreenState extends State<ExpensaAdminDetailScreen> {
     final e = _expensaActual;
     final estadoLabel = formatEstado(e.estado);
     final colorEstado = estadoColor(e.estado);
+    final estaPagada = _expensaActual.estado == 'PAGADA';
+    final tienePagos = _pagos.isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Expensa - Administrador'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.picture_as_pdf),
-            tooltip: 'Ver comprobante',
-            onPressed: _onVerComprobantePressed,
+          if (estaPagada && tienePagos)
+            IconButton(
+              icon: const Icon(Icons.picture_as_pdf),
+              tooltip: 'Comprobante de pago',
+              onPressed: () => _onVerComprobantePressed(_pagos.first),
+            ),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'anular') {
+                _confirmarAnulacion();
+              }
+            },
+            itemBuilder: (_) => const [
+              PopupMenuItem(
+                value: 'anular',
+                child: Text('Anular expensa'),
+              ),
+            ],
           ),
         ],
       ),
@@ -294,4 +375,8 @@ class _ExpensaAdminDetailScreenState extends State<ExpensaAdminDetailScreen> {
     );
   }
 }
+
+
+
+
 
