@@ -1,12 +1,13 @@
 import 'package:consorcio_360/core/state/current_context_notifier.dart';
 import 'package:consorcio_360/features/auth/presentation/login_screen.dart';
 import 'package:consorcio_360/features/context/presentation/context_selection_screen.dart';
+import 'package:consorcio_360/features/expensas/presentation/expensas_tab.dart';
+import 'package:consorcio_360/features/pagos/presentation/pagos_tab.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'consorcio_reclamos_screen.dart';
-import 'placeholder_feature_screen.dart';
 import 'reclamos_tab.dart';
 
 /// Home principal, con tabs Reclamos / Expensas / Pagos.
@@ -34,7 +35,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
       case 1:
         return 'Expensas';
       case 2:
-        return 'Pagos / Tablero';
+        return 'Pagos';
       default:
         return 'Consorcio 360';
     }
@@ -142,9 +143,9 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
           ? const ConsorcioReclamosScreen()
           : const ReclamosTab(); // Reclamos (admin ve tablero general)
     } else if (_selectedIndex == 1) {
-      body = const PlaceholderFeatureScreen(titulo: 'Expensas');
+      body = const ExpensasTab();
     } else {
-      body = const PlaceholderFeatureScreen(titulo: 'Pagos / Tablero');
+      body = const PagosTab();
     }
 
     final tituloSeccion = _tituloSeccion();

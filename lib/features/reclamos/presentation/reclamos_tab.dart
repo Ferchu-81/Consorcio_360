@@ -165,8 +165,9 @@ class _ReclamosTabState extends State<ReclamosTab> {
                   itemCount: reclamos.length,
                   itemBuilder: (context, index) {
                     final r = reclamos[index];
-                    final fechaStr =
-                        formatShortDateFromIso(r['fecha_creacion']);
+                    final fechaStr = formatShortDateFromIso(
+                      r['fecha_creacion'],
+                    );
                     final estado = (r['estado'] ?? '').toString();
                     final prioridad = (r['prioridad'] ?? '').toString();
                     final estadoLabel = formatEnumLabel(estado);

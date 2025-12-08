@@ -1,4 +1,4 @@
-﻿import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseConfig {
   // Reemplaza estos valores con los que YA usabas en tu main.dart anterior
@@ -8,5 +8,3 @@ class SupabaseConfig {
 
   static SupabaseClient get client => Supabase.instance.client;
 }
-
-

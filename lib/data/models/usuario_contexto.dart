@@ -1,4 +1,4 @@
-﻿class UsuarioContexto {
+class UsuarioContexto {
   final String usuarioUnidadId;
   final String consorcioId;
   final String consorcioNombre;
