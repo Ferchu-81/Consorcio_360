@@ -1,4 +1,4 @@
-import 'package:consorcio_360/data/models/expensa.dart';
+﻿import 'package:consorcio_360/data/models/expensa.dart';
 import 'package:consorcio_360/data/models/pago_expensa.dart';
 import 'package:consorcio_360/data/repositories/expensas_repository.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensas_utils.dart';
@@ -7,12 +7,16 @@ import 'package:flutter/material.dart';
 /// Detalle exclusivo para administrador, con cambio de estado.
 class ExpensaAdminDetailScreen extends StatefulWidget {
   final String consorcioId;
+  final String? consorcioNombre;
   final Expensa expensa;
+  final String? unidadCodigo;
 
   const ExpensaAdminDetailScreen({
     super.key,
     required this.consorcioId,
+    this.consorcioNombre,
     required this.expensa,
+    this.unidadCodigo,
   });
 
   @override
@@ -75,12 +79,11 @@ class _ExpensaAdminDetailScreenState extends State<ExpensaAdminDetailScreen> {
         nuevoEstado: _estadoSeleccionado,
       );
 
+      if (!mounted) return;
       setState(() {
         _expensaActual = _expensaActual.copyWith(estado: _estadoSeleccionado);
         _guardandoEstado = false;
       });
-
-      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Estado actualizado correctamente')),
       );
@@ -95,6 +98,14 @@ class _ExpensaAdminDetailScreenState extends State<ExpensaAdminDetailScreen> {
     }
   }
 
+  Future<void> _onVerComprobantePressed() async {
+    // Placeholder: integrar generación/recuperación de comprobante y visor.
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Comprobante de pago: TODO implementar')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -103,7 +114,16 @@ class _ExpensaAdminDetailScreenState extends State<ExpensaAdminDetailScreen> {
     final colorEstado = estadoColor(e.estado);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Expensa - Administrador')),
+      appBar: AppBar(
+        title: const Text('Expensa - Administrador'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf),
+            tooltip: 'Ver comprobante',
+            onPressed: _onVerComprobantePressed,
+          ),
+        ],
+      ),
       body: Column(
         children: [
           Card(
@@ -114,7 +134,7 @@ class _ExpensaAdminDetailScreenState extends State<ExpensaAdminDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${formatPeriodo(e.periodo)} • Unidad ${e.unidadId}',
+                    '${formatPeriodo(e.periodo)} - Unidad ${widget.unidadCodigo ?? e.unidadId}',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -125,7 +145,7 @@ class _ExpensaAdminDetailScreenState extends State<ExpensaAdminDetailScreen> {
                     style: theme.textTheme.titleMedium,
                   ),
                   const SizedBox(height: 4),
-                  Text('Consorcio: ${widget.consorcioId}'),
+                  Text('Consorcio: ${widget.consorcioNombre ?? widget.consorcioId}'),
                   Text('Vence: ${formatFechaCorta(e.fechaVenc)}'),
                   const SizedBox(height: 10),
                   Row(
@@ -274,3 +294,4 @@ class _ExpensaAdminDetailScreenState extends State<ExpensaAdminDetailScreen> {
     );
   }
 }
+

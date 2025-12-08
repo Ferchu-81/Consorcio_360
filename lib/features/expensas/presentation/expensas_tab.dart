@@ -24,7 +24,10 @@ class ExpensasTab extends StatelessWidget {
     final bool esAdmin = contexto.rol == 'ADMIN_CONSORCIO';
 
     if (esAdmin) {
-      return ExpensasAdminTab(consorcioId: contexto.consorcioId);
+      return ExpensasAdminTab(
+        consorcioId: contexto.consorcioId,
+        consorcioNombre: contexto.consorcioNombre,
+      );
     }
 
     return ExpensasMoradorTab(unidadId: contexto.unidadId);

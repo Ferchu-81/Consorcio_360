@@ -8,8 +8,13 @@ import 'package:flutter/material.dart';
 /// Vista de expensas para administrador: filtros y listado por consorcio.
 class ExpensasAdminTab extends StatefulWidget {
   final String consorcioId;
+  final String consorcioNombre;
 
-  const ExpensasAdminTab({super.key, required this.consorcioId});
+  const ExpensasAdminTab({
+    super.key,
+    required this.consorcioId,
+    required this.consorcioNombre,
+  });
 
   @override
   State<ExpensasAdminTab> createState() => _ExpensasAdminTabState();
@@ -194,7 +199,7 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
                     final unidadLabel =
                         (unidadMap['codigo'] ?? '').toString().trim().isEmpty
                         ? e.unidadId
-                        : unidadMap['codigo'] as String;
+                        : (unidadMap['codigo'] ?? '').toString();
                     final estadoLabel = formatEstado(e.estado);
                     final color = estadoColor(e.estado);
 
@@ -210,12 +215,16 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
                                 MaterialPageRoute(
                                   builder: (_) => ExpensaAdminDetailScreen(
                                     consorcioId: widget.consorcioId,
+                                    consorcioNombre: widget.consorcioNombre,
                                     expensa: e,
+                                    unidadCodigo: unidadLabel,
                                   ),
                                 ),
                               );
-                          if (recargar == true) {
-                            await _aplicarFiltros();
+                          if (recargar == true && mounted) {
+                            setState(() {
+                              _futureExpensas = _consultarExpensas();
+                            });
                           }
                         },
                         leading: const Icon(Icons.receipt_long_outlined),

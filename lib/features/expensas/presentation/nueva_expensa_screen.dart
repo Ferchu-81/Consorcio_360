@@ -98,13 +98,22 @@ class _NuevaExpensaScreenState extends State<NuevaExpensaScreen> {
     setState(() => _guardando = true);
 
     try {
-      await _repo.crearExpensa(
-        consorcioId: widget.consorcioId,
-        unidadId: _unidadSeleccionada!,
-        periodo: _periodo,
-        importeTotal: importe,
-        fechaVenc: _fechaVenc,
-      );
+      if (_unidadSeleccionada == 'GLOBAL') {
+        await _repo.crearExpensasGlobales(
+          consorcioId: widget.consorcioId,
+          periodo: _periodo,
+          importeTotal: importe,
+          fechaVenc: _fechaVenc,
+        );
+      } else {
+        await _repo.crearExpensa(
+          consorcioId: widget.consorcioId,
+          unidadId: _unidadSeleccionada!,
+          periodo: _periodo,
+          importeTotal: importe,
+          fechaVenc: _fechaVenc,
+        );
+      }
 
       if (!mounted) return;
       Navigator.of(context).pop(true);
@@ -119,14 +128,18 @@ class _NuevaExpensaScreenState extends State<NuevaExpensaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final unidadesItems = _unidades
-        .map(
-          (u) => DropdownMenuItem<String>(
-            value: u['id'] as String,
-            child: Text((u['codigo'] ?? '').toString()),
-          ),
-        )
-        .toList();
+    final unidadesItems = [
+      const DropdownMenuItem<String>(
+        value: 'GLOBAL',
+        child: Text('GLOBAL (todas las unidades)'),
+      ),
+      ..._unidades.map(
+        (u) => DropdownMenuItem<String>(
+          value: u['id'] as String,
+          child: Text((u['codigo'] ?? '').toString()),
+        ),
+      ),
+    ];
 
     return Scaffold(
       appBar: AppBar(title: const Text('Nueva expensa')),

@@ -904,18 +904,6 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
                         style: theme.textTheme.bodyMedium,
                       ),
                     ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton.icon(
-                      onPressed: _adjuntos.isEmpty ? null : _openAdjuntosScreen,
-                      icon: const Icon(Icons.attach_file, size: 18),
-                      label: Text('Adjuntos (${_adjuntos.length})'),
-                      style: TextButton.styleFrom(
-                        visualDensity: VisualDensity.compact,
-                        padding: EdgeInsets.zero,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),

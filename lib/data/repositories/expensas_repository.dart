@@ -212,4 +212,41 @@ class ExpensasRepository {
       'fecha_venc': fechaVenc.toIso8601String(),
     });
   }
+
+  /// Crea una expensa para cada unidad del consorcio (caso GLOBAL).
+  Future<void> crearExpensasGlobales({
+    required String consorcioId,
+    required DateTime periodo,
+    required double importeTotal,
+    required DateTime fechaVenc,
+  }) async {
+    final unidades = await _supabase
+        .from('unidades')
+        .select('id')
+        .eq('consorcio_id', consorcioId);
+
+    final unidadesList = List<Map<String, dynamic>>.from(
+      unidades as List<dynamic>,
+    );
+    if (unidadesList.isEmpty) return;
+
+    final periodoIso = DateTime(periodo.year, periodo.month, 1)
+        .toIso8601String();
+    final vencIso = fechaVenc.toIso8601String();
+
+    final data = unidadesList
+        .map(
+          (u) => {
+            'consorcio_id': consorcioId,
+            'unidad_id': u['id'] as String,
+            'periodo': periodoIso,
+            'importe_total': importeTotal,
+            'estado': 'PENDIENTE',
+            'fecha_venc': vencIso,
+          },
+        )
+        .toList();
+
+    await _supabase.from('expensas').insert(data);
+  }
 }
