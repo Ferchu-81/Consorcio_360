@@ -240,6 +240,7 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
       final cleanName = fileName.replaceAll(' ', '_');
       final path = '${widget.reclamoId}/$cleanName';
       final resolvedMime = _guessMimeType(cleanName);
+      final isPdf = resolvedMime == 'application/pdf';
 
       await supabase.storage
           .from('reclamos')
@@ -249,12 +250,17 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
             fileOptions: FileOptions(contentType: resolvedMime),
           );
 
-      await supabase.from('reclamo_adjuntos').insert({
+      final insertData = {
         'reclamo_id': widget.reclamoId,
+        'tipo_archivo': isPdf ? 'pdf' : 'imagen',
+        'url_archivo': path,
         'archivo_nombre': fileName,
         'mime_type': resolvedMime,
         'storage_path': path,
-      });
+      };
+
+      await supabase.from('reclamo_adjuntos').insert(insertData);
+      await _loadAdjuntosSolo();
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
