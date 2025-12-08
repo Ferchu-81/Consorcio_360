@@ -143,7 +143,7 @@ class ExpensasRepository {
   ) async {
     final data = await _supabase
         .from('unidades')
-        .select('id, codigo, nombre')
+        .select('id, codigo')
         .eq('consorcio_id', consorcioId)
         .order('codigo', ascending: true);
 
@@ -193,5 +193,23 @@ class ExpensasRepository {
         .from('expensas')
         .update({'estado': nuevoEstado})
         .eq('id', expensaId);
+  }
+
+  /// Crea una expensa manual (MVP admin).
+  Future<void> crearExpensa({
+    required String consorcioId,
+    required String unidadId,
+    required DateTime periodo,
+    required double importeTotal,
+    required DateTime fechaVenc,
+  }) async {
+    await _supabase.from('expensas').insert({
+      'consorcio_id': consorcioId,
+      'unidad_id': unidadId,
+      'periodo': DateTime(periodo.year, periodo.month, 1).toIso8601String(),
+      'importe_total': importeTotal,
+      'estado': 'PENDIENTE',
+      'fecha_venc': fechaVenc.toIso8601String(),
+    });
   }
 }

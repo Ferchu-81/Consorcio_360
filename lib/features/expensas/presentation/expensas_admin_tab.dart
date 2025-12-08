@@ -1,6 +1,7 @@
 import 'package:consorcio_360/data/models/expensa.dart';
 import 'package:consorcio_360/data/repositories/expensas_repository.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensa_admin_detail_screen.dart';
+import 'package:consorcio_360/features/expensas/presentation/nueva_expensa_screen.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensas_utils.dart';
 import 'package:flutter/material.dart';
 
@@ -119,6 +120,17 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
     return Column(
       children: [
         if (_cargandoFiltros) const LinearProgressIndicator(minHeight: 2),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: FilledButton.icon(
+              onPressed: _openNuevaExpensa,
+              icon: const Icon(Icons.add),
+              label: const Text('Nueva expensa'),
+            ),
+          ),
+        ),
         _buildFiltros(),
         const Divider(height: 1),
         Expanded(
@@ -175,13 +187,14 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
                   itemCount: expensas.length,
                   itemBuilder: (context, index) {
                     final e = expensas[index];
-                    final unidadNombre = _unidades.firstWhere(
+                    final unidadMap = _unidades.firstWhere(
                       (u) => u['id'] == e.unidadId,
                       orElse: () => <String, dynamic>{},
                     );
                     final unidadLabel =
-                        (unidadNombre['codigo'] ?? unidadNombre['nombre']) ??
-                        e.unidadId;
+                        (unidadMap['codigo'] ?? '').toString().trim().isEmpty
+                        ? e.unidadId
+                        : unidadMap['codigo'] as String;
                     final estadoLabel = formatEstado(e.estado);
                     final color = estadoColor(e.estado);
 
@@ -246,74 +259,103 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
 
   Widget _buildFiltros() {
     return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Wrap(
-        spacing: 10,
-        runSpacing: 10,
-        crossAxisAlignment: WrapCrossAlignment.center,
+      padding: const EdgeInsets.all(12.0),
+      child: Column(
         children: [
-          SizedBox(
-            width: 200,
-            child: DropdownButtonFormField<String>(
-              decoration: const InputDecoration(
-                labelText: 'Unidad',
-                border: OutlineInputBorder(),
-                isDense: true,
-              ),
-              initialValue: _unidadSeleccionada,
-              items: [
-                const DropdownMenuItem(value: null, child: Text('Todas')),
-                ..._unidades.map(
-                  (u) => DropdownMenuItem(
-                    value: u['id'] as String,
-                    child: Text((u['codigo'] ?? u['nombre'] ?? '').toString()),
-                  ),
-                ),
-              ],
-              onChanged: (value) {
-                setState(() {
-                  _unidadSeleccionada = value;
-                });
-                _aplicarFiltros();
-              },
-            ),
+          Row(
+            children: [
+              Expanded(child: _buildFiltroUnidad()),
+              const SizedBox(width: 8),
+              Expanded(child: _buildFiltroEstado()),
+            ],
           ),
-          SizedBox(
-            width: 180,
-            child: DropdownButtonFormField<String>(
-              decoration: const InputDecoration(
-                labelText: 'Estado',
-                border: OutlineInputBorder(),
-                isDense: true,
-              ),
-              initialValue: _estadoSeleccionado,
-              items: const [
-                DropdownMenuItem(value: 'TODOS', child: Text('Todos')),
-                DropdownMenuItem(value: 'PENDIENTE', child: Text('Pendiente')),
-                DropdownMenuItem(value: 'PAGADA', child: Text('Pagada')),
-                DropdownMenuItem(value: 'VENCIDA', child: Text('Vencida')),
-                DropdownMenuItem(value: 'PARCIAL', child: Text('Parcial')),
-                DropdownMenuItem(value: 'ANULADA', child: Text('Anulada')),
-              ],
-              onChanged: (value) {
-                if (value == null) return;
-                setState(() => _estadoSeleccionado = value);
-                _aplicarFiltros();
-              },
-            ),
-          ),
-          OutlinedButton.icon(
-            onPressed: _seleccionarDesde,
-            icon: const Icon(Icons.date_range),
-            label: Text('Desde: ${_textoFecha(_desde)}'),
-          ),
-          OutlinedButton.icon(
-            onPressed: _seleccionarHasta,
-            icon: const Icon(Icons.date_range),
-            label: Text('Hasta: ${_textoFecha(_hasta)}'),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(child: _buildFiltroFechaDesde()),
+              const SizedBox(width: 8),
+              Expanded(child: _buildFiltroFechaHasta()),
+            ],
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildFiltroUnidad() {
+    return DropdownButtonFormField<String>(
+      decoration: const InputDecoration(
+        labelText: 'Unidad',
+        border: OutlineInputBorder(),
+        isDense: true,
+      ),
+      initialValue: _unidadSeleccionada,
+      items: [
+        const DropdownMenuItem(value: null, child: Text('Todas')),
+        ..._unidades.map(
+          (u) => DropdownMenuItem(
+            value: u['id'] as String,
+            child: Text((u['codigo'] ?? '').toString()),
+          ),
+        ),
+      ],
+      onChanged: (value) {
+        setState(() {
+          _unidadSeleccionada = value;
+        });
+        _aplicarFiltros();
+      },
+    );
+  }
+
+  Widget _buildFiltroEstado() {
+    return DropdownButtonFormField<String>(
+      decoration: const InputDecoration(
+        labelText: 'Estado',
+        border: OutlineInputBorder(),
+        isDense: true,
+      ),
+      initialValue: _estadoSeleccionado,
+      items: const [
+        DropdownMenuItem(value: 'TODOS', child: Text('Todos')),
+        DropdownMenuItem(value: 'PENDIENTE', child: Text('Pendiente')),
+        DropdownMenuItem(value: 'PAGADA', child: Text('Pagada')),
+        DropdownMenuItem(value: 'VENCIDA', child: Text('Vencida')),
+        DropdownMenuItem(value: 'PARCIAL', child: Text('Parcial')),
+        DropdownMenuItem(value: 'ANULADA', child: Text('Anulada')),
+      ],
+      onChanged: (value) {
+        if (value == null) return;
+        setState(() => _estadoSeleccionado = value);
+        _aplicarFiltros();
+      },
+    );
+  }
+
+  Widget _buildFiltroFechaDesde() {
+    return OutlinedButton.icon(
+      onPressed: _seleccionarDesde,
+      icon: const Icon(Icons.date_range),
+      label: Text('Desde: ${_textoFecha(_desde)}'),
+    );
+  }
+
+  Widget _buildFiltroFechaHasta() {
+    return OutlinedButton.icon(
+      onPressed: _seleccionarHasta,
+      icon: const Icon(Icons.date_range),
+      label: Text('Hasta: ${_textoFecha(_hasta)}'),
+    );
+  }
+
+  Future<void> _openNuevaExpensa() async {
+    final recargar = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => NuevaExpensaScreen(consorcioId: widget.consorcioId),
+      ),
+    );
+    if (recargar == true) {
+      await _aplicarFiltros();
+    }
   }
 }

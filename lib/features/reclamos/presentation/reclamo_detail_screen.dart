@@ -823,26 +823,24 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
                     ),
                   const SizedBox(height: 6),
                   Row(
+                    children: [
+                      if (unidadCodigo.isNotEmpty)
+                        Chip(
+                          label: Text('Unidad $unidadCodigo'),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      const SizedBox(width: 6),
+                      Chip(
+                        label: Text('Prioridad: $prioridadLabel'),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Wrap(
-                          spacing: 6,
-                          runSpacing: 4,
-                          children: [
-                            if (unidadCodigo.isNotEmpty)
-                              Chip(
-                                label: Text('Unidad $unidadCodigo'),
-                                visualDensity: VisualDensity.compact,
-                              ),
-                            Chip(
-                              label: Text('Prioridad: $prioridadLabel'),
-                              visualDensity: VisualDensity.compact,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
                       if (esAdmin)
                         Row(
                           mainAxisSize: MainAxisSize.min,
@@ -885,6 +883,17 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
                           label: Text('Estado: $estadoLabel'),
                           visualDensity: VisualDensity.compact,
                         ),
+                      TextButton.icon(
+                        onPressed: _adjuntos.isEmpty
+                            ? null
+                            : _openAdjuntosScreen,
+                        icon: const Icon(Icons.attach_file, size: 18),
+                        label: Text('Adjuntos (${_adjuntos.length})'),
+                        style: TextButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                          padding: EdgeInsets.zero,
+                        ),
+                      ),
                     ],
                   ),
                   if (descripcion.trim().isNotEmpty)
