@@ -12,7 +12,6 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class ReclamoDetailScreen extends StatefulWidget {
   final String reclamoId;
@@ -238,26 +237,28 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
     try {
       final supabase = Supabase.instance.client;
 
-      final path =
-          'reclamos/${widget.reclamoId}/${DateTime.now().millisecondsSinceEpoch}_$fileName';
+      final cleanName = fileName.replaceAll(' ', '_');
+      final path = '${widget.reclamoId}/$cleanName';
+      final resolvedMime = _guessMimeType(cleanName);
 
-      await supabase.storage.from('reclamos').uploadBinary(
+      await supabase.storage
+          .from('reclamos')
+          .uploadBinary(
             path,
             Uint8List.fromList(bytes),
-            fileOptions: FileOptions(contentType: mimeType),
+            fileOptions: FileOptions(contentType: resolvedMime),
           );
 
       await supabase.from('reclamo_adjuntos').insert({
         'reclamo_id': widget.reclamoId,
         'archivo_nombre': fileName,
-        'mime_type': mimeType,
+        'mime_type': resolvedMime,
         'storage_path': path,
-        'fecha_subida': DateTime.now().toIso8601String(),
       });
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Adjunto cargado correctamente')),
+        const SnackBar(content: Text('Adjunto subido correctamente.')),
       );
     } catch (e, st) {
       debugPrint(
@@ -320,16 +321,14 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
     );
 
     if (result == null || result.files.isEmpty) return;
-      final file = result.files.single;
-      if (file.bytes == null) return;
+    final file = result.files.single;
+    if (file.bytes == null) return;
 
     const maxSizeBytes = 5 * 1024 * 1024;
     if (file.size > maxSizeBytes) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('El archivo es muy grande (max. 5 MB).'),
-        ),
+        const SnackBar(content: Text('El archivo es muy grande (max. 5 MB).')),
       );
       return;
     }
@@ -339,49 +338,6 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
       fileName: file.name,
       mimeType: _guessMimeType(file.name),
     );
-  }
-
-  Future<void> _openAdjunto(Map<String, dynamic> adj) async {
-    final supabase = Supabase.instance.client;
-
-    final rawPath = (adj['storage_path'] ??
-            adj['path'] ??
-            adj['url_archivo'] ??
-            adj['archivo_url'] ??
-            adj['url'] ??
-            '')
-        .toString()
-        .trim();
-
-    if (rawPath.isEmpty) return;
-
-    try {
-      String url;
-      if (rawPath.startsWith('http')) {
-        url = rawPath;
-      } else {
-        url = await supabase.storage
-            .from('reclamos')
-            .createSignedUrl(rawPath, 60 * 60);
-      }
-
-      final uri = Uri.parse(url);
-      final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
-
-      if (!ok && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se pudo abrir el archivo.')),
-        );
-      }
-    } catch (e, st) {
-      debugPrint(
-        'Error al abrir adjunto de reclamo ${widget.reclamoId}: $e\n$st',
-      );
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se pudo abrir el archivo.')),
-      );
-    }
   }
 
   bool _puedeEliminarMensaje(DateTime? fecha) {
@@ -590,10 +546,7 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
   void _openAdjuntosScreen() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => ReclamoAdjuntosScreen(
-          reclamoId: widget.reclamoId,
-          onOpenAdjunto: _openAdjunto,
-        ),
+        builder: (_) => ReclamoAdjuntosScreen(reclamoId: widget.reclamoId),
       ),
     );
   }
