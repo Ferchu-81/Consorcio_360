@@ -63,19 +63,20 @@ class _ExpensaAdminDetailScreenState extends State<ExpensaAdminDetailScreen> {
 
       if (!mounted) return;
 
-      setState(() {
-        _expensaActual = _expensaActual.copyWith(estado: _estadoSeleccionado!);
-        _guardandoEstado = false;
-      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Estado de expensa actualizado.')),
+      );
 
-      // Notifica a la lista para recargar.
-      Navigator.of(context).pop(true);
+      Navigator.of(context).pop(true); // Notifica recarga en lista
     } catch (e) {
       if (!mounted) return;
-      setState(() => _guardandoEstado = false);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error al actualizar estado: $e')));
+    } finally {
+      if (mounted) {
+        setState(() => _guardandoEstado = false);
+      }
     }
   }
 

@@ -1,4 +1,5 @@
 import 'package:consorcio_360/core/state/current_context_notifier.dart';
+import 'package:consorcio_360/data/models/usuario_contexto.dart';
 import 'package:consorcio_360/data/models/pago_expensa.dart';
 import 'package:consorcio_360/data/repositories/expensas_repository.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensas_utils.dart';
@@ -7,7 +8,9 @@ import 'package:provider/provider.dart';
 
 /// Historial de pagos de expensas para la unidad actual.
 class PagosTab extends StatefulWidget {
-  const PagosTab({super.key});
+  final UsuarioContexto? contexto;
+
+  const PagosTab({super.key, this.contexto});
 
   @override
   State<PagosTab> createState() => _PagosTabState();
@@ -24,7 +27,8 @@ class _PagosTabState extends State<PagosTab> {
   }
 
   Future<List<PagoExpensa>> _loadPagos() async {
-    final contexto = context.read<CurrentContextNotifier>().current;
+    final contexto =
+        widget.contexto ?? context.read<CurrentContextNotifier>().current;
     if (contexto == null) {
       throw Exception('No hay contexto seleccionado.');
     }

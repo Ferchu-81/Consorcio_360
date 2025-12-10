@@ -24,6 +24,43 @@ class Expensa {
     this.moneda = 'ARS',
   });
 
+  /// Estado considerando vencimiento: si está pendiente y ya pasó el vencimiento, se muestra VENCIDA.
+  String get estadoEfectivo {
+    final hoy = DateTime.now();
+    final hoySinHora = DateTime(hoy.year, hoy.month, hoy.day);
+    final vencSinHora =
+        DateTime(fechaVenc.year, fechaVenc.month, fechaVenc.day);
+
+    if (estado == 'PENDIENTE' && vencSinHora.isBefore(hoySinHora)) {
+      return 'VENCIDA';
+    }
+    return estado;
+  }
+
+  String get periodoFormatted =>
+      '${_mesNombre(periodo.month)} ${periodo.year}';
+
+  String get fechaVencFormatted =>
+      '${fechaVenc.day.toString().padLeft(2, '0')}/${fechaVenc.month.toString().padLeft(2, '0')}/${fechaVenc.year}';
+
+  String _mesNombre(int mes) {
+    const meses = [
+      'Enero',
+      'Febrero',
+      'Marzo',
+      'Abril',
+      'Mayo',
+      'Junio',
+      'Julio',
+      'Agosto',
+      'Septiembre',
+      'Octubre',
+      'Noviembre',
+      'Diciembre',
+    ];
+    return meses[mes - 1];
+  }
+
   factory Expensa.fromMap(Map<String, dynamic> map) {
     return Expensa(
       id: map['id'] as String,

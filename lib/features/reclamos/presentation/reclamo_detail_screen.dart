@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:consorcio_360/core/state/current_context_notifier.dart';
+import 'package:consorcio_360/core/widgets/pdf_action_sheet.dart';
 import 'package:consorcio_360/data/models/usuario_contexto.dart';
 import 'package:consorcio_360/features/reclamos/presentation/reclamo_adjuntos_screen.dart';
 import 'package:consorcio_360/features/reclamos/presentation/reclamos_utils.dart';
@@ -9,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -733,18 +733,17 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
 
   Future<void> _exportPdf() async {
     final contexto = context.read<CurrentContextNotifier>().current;
-    final unidadCodigo = (_reclamo?['unidad']?['codigo'] ?? '')
-        .toString()
-        .trim();
-    final bytes = await _buildPdfBytes();
-    if (!mounted) return;
-    if (bytes.isEmpty) return;
-
+    final unidadCodigo =
+        (_reclamo?['unidad']?['codigo'] ?? '').toString().trim();
     final safeUnidad = unidadCodigo.isEmpty ? 'sin_unidad' : unidadCodigo;
     final fileName =
-        'reclamo_${contexto?.consorcioNombre ?? 'consorcio'}_$safeUnidad.pdf';
+        'reclamo_${contexto?.consorcioNombre ?? 'consorcio'}_$safeUnidad';
 
-    await Printing.sharePdf(bytes: bytes, filename: fileName);
+    await showPdfActionSheet(
+      context: context,
+      filenameBase: fileName,
+      buildPdfBytes: _buildPdfBytes,
+    );
   }
 
   @override

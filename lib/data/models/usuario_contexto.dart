@@ -4,6 +4,7 @@ class UsuarioContexto {
   final String consorcioNombre;
   final String unidadId;
   final String unidadCodigo;
+  final String? nombre;
   final String rol; // ADMIN_CONSORCIO / PROPIETARIO / MORADOR
   final bool esTitular;
 
@@ -13,6 +14,7 @@ class UsuarioContexto {
     required this.consorcioNombre,
     required this.unidadId,
     required this.unidadCodigo,
+    this.nombre,
     required this.rol,
     required this.esTitular,
   });
@@ -32,6 +34,8 @@ class UsuarioContexto {
   String get descripcionLarga =>
       '$consorcioNombre - Unidad $unidadCodigo - $rolLegible';
 
+  String get rolDescripcion => rolLegible;
+
   Map<String, dynamic> toJson() {
     return {
       'usuario_unidad_id': usuarioUnidadId,
@@ -39,6 +43,7 @@ class UsuarioContexto {
       'consorcio_nombre': consorcioNombre,
       'unidad_id': unidadId,
       'unidad_codigo': unidadCodigo,
+      'nombre': nombre,
       'rol': rol,
       'es_titular': esTitular,
     };
@@ -51,6 +56,7 @@ class UsuarioContexto {
       consorcioNombre: json['consorcio_nombre'] as String,
       unidadId: json['unidad_id'] as String,
       unidadCodigo: json['unidad_codigo'] as String,
+      nombre: json['nombre'] as String?,
       rol: json['rol'] as String,
       esTitular: json['es_titular'] as bool? ?? false,
     );

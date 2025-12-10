@@ -13,6 +13,7 @@ class PagoExpensa {
   final DateTime? periodoExpensa;
   final String? monedaExpensa;
   final double? expensaImporteTotal;
+  final String? nombrePagador;
 
   PagoExpensa({
     required this.id,
@@ -28,6 +29,7 @@ class PagoExpensa {
     this.periodoExpensa,
     this.monedaExpensa,
     this.expensaImporteTotal,
+    this.nombrePagador,
   });
 
   factory PagoExpensa.fromMap(Map<String, dynamic> map) {
@@ -52,8 +54,12 @@ class PagoExpensa {
       expensaImporteTotal: expensaRelacion != null
           ? _toDouble(expensaRelacion['importe_total'])
           : null,
+      nombrePagador: map['nombre_pagador']?.toString(),
     );
   }
+
+  String get fechaFormatted =>
+      '${fechaPago.day.toString().padLeft(2, '0')}/${fechaPago.month.toString().padLeft(2, '0')}/${fechaPago.year}';
 
   static double _toDouble(dynamic value) {
     if (value == null) return 0;

@@ -2,7 +2,7 @@ import 'package:consorcio_360/core/services/context_storage.dart';
 import 'package:consorcio_360/core/state/current_context_notifier.dart';
 import 'package:consorcio_360/data/models/usuario_contexto.dart';
 import 'package:consorcio_360/features/context/presentation/context_selection_screen.dart';
-import 'package:consorcio_360/features/dashboard/presentation/dashboard_screen.dart';
+import 'package:consorcio_360/features/reclamos/presentation/main_home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -29,7 +29,7 @@ class _RootScreenState extends State<RootScreen> {
       context.read<CurrentContextNotifier>().setContext(ctx);
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (_) => DashboardScreen(contexto: ctx),
+          builder: (_) => MainHomeScreen(contexto: ctx),
         ),
       );
     } else {

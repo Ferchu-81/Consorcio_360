@@ -2,7 +2,7 @@ import 'package:consorcio_360/core/state/current_context_notifier.dart';
 import 'package:consorcio_360/core/services/context_storage.dart';
 import 'package:consorcio_360/data/models/usuario_contexto.dart';
 import 'package:consorcio_360/features/auth/presentation/login_screen.dart';
-import 'package:consorcio_360/features/dashboard/presentation/dashboard_screen.dart';
+import 'package:consorcio_360/features/reclamos/presentation/main_home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -54,6 +54,8 @@ class _ContextSelectionScreenState extends State<ContextSelectionScreen> {
       final map = row as Map<String, dynamic>;
       final unidad = map['unidad'] as Map<String, dynamic>;
       final consorcio = unidad['consorcio'] as Map<String, dynamic>;
+      final nombreUsuario =
+          (user.userMetadata?['full_name'] as String?) ?? user.email;
 
       return UsuarioContexto(
         usuarioUnidadId: map['id'] as String,
@@ -61,6 +63,7 @@ class _ContextSelectionScreenState extends State<ContextSelectionScreen> {
         consorcioNombre: consorcio['nombre'] as String,
         unidadId: unidad['id'] as String,
         unidadCodigo: unidad['codigo'] as String,
+        nombre: nombreUsuario,
         rol: map['rol'] as String,
         esTitular: map['es_titular'] as bool? ?? false,
       );
@@ -159,10 +162,10 @@ class _ContextSelectionScreenState extends State<ContextSelectionScreen> {
                     // 2) Persistimos la elección
                     await ContextStorage.guardarContexto(ctx);
                     if (!mounted) return;
-                    // 3) Navegamos al dashboard
+                    // 3) Navegamos al home principal
                     navigator.pushReplacement(
                       MaterialPageRoute(
-                        builder: (_) => DashboardScreen(contexto: ctx),
+                        builder: (_) => MainHomeScreen(contexto: ctx),
                       ),
                     );
                   },

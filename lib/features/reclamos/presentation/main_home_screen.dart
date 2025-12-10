@@ -1,45 +1,46 @@
 import 'package:consorcio_360/core/services/context_storage.dart';
 import 'package:consorcio_360/core/state/current_context_notifier.dart';
+import 'package:consorcio_360/data/models/usuario_contexto.dart';
 import 'package:consorcio_360/features/auth/presentation/login_screen.dart';
 import 'package:consorcio_360/features/context/presentation/context_selection_screen.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensas_tab.dart';
+import 'package:consorcio_360/features/home/presentation/dashboard_tab.dart';
 import 'package:consorcio_360/features/pagos/presentation/pagos_tab.dart';
+import 'package:consorcio_360/features/reclamos/presentation/consorcio_reclamos_screen.dart';
+import 'package:consorcio_360/features/reclamos/presentation/reclamos_tab.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'consorcio_reclamos_screen.dart';
-import 'reclamos_tab.dart';
-
-/// Home principal, con tabs Reclamos / Expensas / Pagos.
-/// Si el rol actual es ADMIN_CONSORCIO, agrega acceso a "Reclamos del consorcio".
+/// Home principal con tabs: Inicio / Reclamos / Expensas / Pagos.
 class MainHomeScreen extends StatefulWidget {
-  const MainHomeScreen({super.key});
+  final UsuarioContexto contexto;
+
+  const MainHomeScreen({super.key, required this.contexto});
 
   @override
   State<MainHomeScreen> createState() => _MainHomeScreenState();
 }
 
 class _MainHomeScreenState extends State<MainHomeScreen> {
-  int _selectedIndex = 0;
+  int _currentIndex = 0;
+  late final List<Widget> _tabs;
 
-  void _onTabTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
+  @override
+  void initState() {
+    super.initState();
+    // Asegura que el notifier tenga el contexto actual.
+    context.read<CurrentContextNotifier>().setContext(widget.contexto);
 
-  String _tituloSeccion() {
-    switch (_selectedIndex) {
-      case 0:
-        return 'Reclamos';
-      case 1:
-        return 'Expensas';
-      case 2:
-        return 'Pagos';
-      default:
-        return 'Consorcio 360';
-    }
+    final nombre = widget.contexto.nombre ?? 'Usuario';
+    final rolDesc = widget.contexto.rolDescripcion;
+
+    _tabs = [
+      DashboardTab(nombre: nombre, rolDescripcion: rolDesc),
+      const ReclamosTab(),
+      const ExpensasTab(),
+      const PagosTab(),
+    ];
   }
 
   Future<void> _logout() async {
@@ -58,9 +59,9 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
         await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Cerrar sesion'),
+            title: const Text('Cerrar sesión'),
             content: const Text(
-              'Queres cerrar la sesion actual?\n'
+              '¿Querés cerrar la sesión actual?\n'
               'Vas a tener que ingresar de nuevo para continuar.',
             ),
             actions: [
@@ -70,7 +71,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
               ),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Cerrar sesion'),
+                child: const Text('Cerrar sesión'),
               ),
             ],
           ),
@@ -99,8 +100,8 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
           builder: (context) => AlertDialog(
             title: const Text('Cambiar de rol / unidad'),
             content: const Text(
-              'Queres cambiar de consorcio, unidad o rol?\n'
-              'Se cerrara el contexto actual.',
+              '¿Querés cambiar de consorcio, unidad o rol?\n'
+              'Se cerrará el contexto actual.',
             ),
             actions: [
               TextButton(
@@ -123,74 +124,58 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final current = context.watch<CurrentContextNotifier>();
-    final contexto = current.current;
+    final ctx = widget.contexto;
+    final esAdmin = ctx.rol == 'ADMIN_CONSORCIO';
 
-    if (contexto == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Consorcio 360')),
-        body: const Center(
-          child: Text(
-            'No hay contexto seleccionado. Volve a la pantalla anterior.',
-          ),
-        ),
-      );
-    }
+    // Si es admin y está en Reclamos, mostramos tablero general, si no la vista normal.
+    final reclamosTab = esAdmin
+        ? const ConsorcioReclamosScreen()
+        : const ReclamosTab();
 
-    final bool esAdmin = contexto.rol == 'ADMIN_CONSORCIO';
-
-    final Widget body;
-    if (_selectedIndex == 0) {
-      body = esAdmin
-          ? const ConsorcioReclamosScreen()
-          : const ReclamosTab(); // Reclamos (admin ve tablero general)
-    } else if (_selectedIndex == 1) {
-      body = const ExpensasTab();
-    } else {
-      body = const PagosTab();
-    }
-
-    final tituloSeccion = _tituloSeccion();
+    final tabs = [
+      _tabs[0],
+      reclamosTab,
+      _tabs[2],
+      _tabs[3],
+    ];
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF4F8EE),
-        elevation: 0,
-        shape: const Border(
-          bottom: BorderSide(color: Color(0xFFE0E0E0), width: 0.5),
-        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${contexto.consorcioNombre} - Unidad ${contexto.unidadCodigo}',
+              '${ctx.consorcioNombre} - Unidad ${ctx.unidadCodigo}',
               style: const TextStyle(fontSize: 14),
             ),
-            Text(tituloSeccion, style: const TextStyle(fontSize: 12)),
+            Text(ctx.rolLegible, style: const TextStyle(fontSize: 12)),
           ],
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: ActionChip(
-              label: Text(contexto.rolLegible),
-              avatar: const Icon(Icons.person_outline, size: 18),
-              visualDensity: VisualDensity.compact,
-              onPressed: _confirmChangeContext,
-            ),
+          IconButton(
+            tooltip: 'Cambiar contexto',
+            icon: const Icon(Icons.swap_horiz),
+            onPressed: _confirmChangeContext,
           ),
           IconButton(
-            tooltip: 'Cerrar sesion',
+            tooltip: 'Cerrar sesión',
             icon: const Icon(Icons.logout),
             onPressed: _confirmLogout,
           ),
         ],
       ),
-      body: body,
+      body: IndexedStack(
+        index: _currentIndex,
+        children: tabs,
+      ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onTabTapped,
+        currentIndex: _currentIndex,
+        onTap: (i) => setState(() => _currentIndex = i),
         items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            label: 'Inicio',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.home_repair_service_outlined),
             label: 'Reclamos',
@@ -200,7 +185,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
             label: 'Expensas',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.payments_outlined),
+            icon: Icon(Icons.account_balance_wallet_outlined),
             label: 'Pagos',
           ),
         ],

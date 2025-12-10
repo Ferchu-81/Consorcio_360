@@ -1,13 +1,13 @@
 ﻿import 'dart:typed_data';
 import 'package:consorcio_360/core/state/current_context_notifier.dart';
+import 'package:consorcio_360/core/services/expensa_pdf_service.dart';
+import 'package:consorcio_360/core/widgets/pdf_action_sheet.dart';
 import 'package:consorcio_360/data/models/expensa.dart';
 import 'package:consorcio_360/data/models/pago_expensa.dart';
 import 'package:consorcio_360/data/repositories/expensas_repository.dart';
-import 'package:consorcio_360/features/expensas/presentation/expensa_pdf_service.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensas_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:printing/printing.dart';
 
 const bool kDemoPagosHabilitado = true;
 
@@ -113,71 +113,36 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
     final consorcioNombre =
         contexto?.consorcioNombre ?? _expensa.consorcioId;
     final unidadCodigo = contexto?.unidadCodigo ?? _expensa.unidadId;
-    const moradorNombre = '';
+    final moradorNombre = contexto?.nombre ?? '';
+    final pago = _pagos.isNotEmpty ? _pagos.first : null;
 
-    return ExpensaPdfService.buildComprobanteExpensa(
+    if (pago == null) {
+      throw StateError('No hay pagos registrados para generar comprobante.');
+    }
+
+    return ExpensaPdfService.buildComprobante(
       expensa: _expensa,
       consorcioNombre: consorcioNombre,
       unidadCodigo: unidadCodigo,
       moradorNombre: moradorNombre,
+      pago: pago,
     );
   }
 
   void _mostrarOpcionesComprobanteExpensa() {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.print),
-              title: const Text('Ver / imprimir comprobante'),
-              onTap: () async {
-                Navigator.of(context).pop();
-                await _verComprobanteExpensa();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.share),
-              title: const Text('Compartir comprobante'),
-              onTap: () async {
-                Navigator.of(context).pop();
-                await _compartirComprobanteExpensa();
-              },
-            ),
-          ],
+    if (_pagos.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No hay pagos registrados para generar comprobante.'),
         ),
-      ),
+      );
+      return;
+    }
+    showPdfActionSheet(
+      context: context,
+      filenameBase: 'comprobante-expensa-${_expensa.periodo.toIso8601String()}',
+      buildPdfBytes: _buildComprobanteExpensaBytes,
     );
-  }
-
-  Future<void> _verComprobanteExpensa() async {
-    try {
-      final bytes = await _buildComprobanteExpensaBytes();
-      await Printing.layoutPdf(onLayout: (_) async => bytes);
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al generar comprobante: $e')),
-      );
-    }
-  }
-
-  Future<void> _compartirComprobanteExpensa() async {
-    try {
-      final bytes = await _buildComprobanteExpensaBytes();
-      await Printing.sharePdf(
-        bytes: bytes,
-        filename:
-            'comprobante-expensa-${_expensa.periodo.toIso8601String()}.pdf',
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al compartir comprobante: $e')),
-      );
-    }
   }
 
   Future<void> _generarBoletaPdf() async {
@@ -187,16 +152,15 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
     final unidadCodigo = contexto?.unidadCodigo ?? _expensa.unidadId;
     const moradorNombre = '';
 
-    final bytes = await ExpensaPdfService.buildBoletaExpensa(
-      expensa: _expensa,
-      consorcioNombre: consorcioNombre,
-      unidadCodigo: unidadCodigo,
-      moradorNombre: moradorNombre,
-    );
-
-    await Printing.sharePdf(
-      bytes: bytes,
-      filename: 'boleta-expensa-${_expensa.periodo.toIso8601String()}.pdf',
+    await showPdfActionSheet(
+      context: context,
+      filenameBase: 'boleta-expensa-${_expensa.periodo.toIso8601String()}',
+      buildPdfBytes: () => ExpensaPdfService.buildBoletaExpensa(
+        expensa: _expensa,
+        consorcioNombre: consorcioNombre,
+        unidadCodigo: unidadCodigo,
+        moradorNombre: moradorNombre,
+      ),
     );
   }
 

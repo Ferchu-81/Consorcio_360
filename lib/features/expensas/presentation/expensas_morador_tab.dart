@@ -106,8 +106,9 @@ class _ExpensasMoradorTabState extends State<ExpensasMoradorTab> {
               itemBuilder: (context, index) {
                 final expensa = expensas[index];
                 final periodoLabel = formatPeriodo(expensa.periodo);
-                final estadoLabel = formatEstado(expensa.estado);
-                final color = estadoColor(expensa.estado);
+                final estadoReal = expensa.estadoEfectivo;
+                final estadoLabel = formatEstado(estadoReal);
+                final color = estadoColor(estadoReal);
 
                 return Card(
                   shape: RoundedRectangleBorder(

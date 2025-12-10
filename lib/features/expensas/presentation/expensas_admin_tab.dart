@@ -1,4 +1,4 @@
-import 'package:consorcio_360/data/models/expensa.dart';
+﻿import 'package:consorcio_360/data/models/expensa.dart';
 import 'package:consorcio_360/data/repositories/expensas_repository.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensa_admin_detail_screen.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensas_utils.dart';
@@ -87,7 +87,7 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
       initialDate: inicial,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
-      helpText: 'Seleccioná periodo DESDE',
+      helpText: 'SeleccionÃ¡ periodo DESDE',
     );
 
     if (date != null) {
@@ -107,7 +107,7 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
       initialDate: inicial,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
-      helpText: 'Seleccioná periodo HASTA',
+      helpText: 'SeleccionÃ¡ periodo HASTA',
     );
 
     if (date != null) {
@@ -212,7 +212,7 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
                         itemBuilder: (context, index) {
                           final e = expensas[index];
 
-                          // Buscar datos de la unidad para mostrar su código.
+                          // Buscar datos de la unidad para mostrar su cÃ³digo.
                           final unidadMap = _unidades.firstWhere(
                             (u) => u['id'] == e.unidadId,
                             orElse: () => <String, dynamic>{},
@@ -231,8 +231,9 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
                               ? (unidadMap['codigo'] ?? '').toString()
                               : e.unidadId;
 
-                          final estadoLabel = formatEstado(e.estado);
-                          final color = estadoColor(e.estado);
+                          final estadoReal = e.estadoEfectivo;
+                          final estadoLabel = formatEstado(estadoReal);
+                          final color = estadoColor(estadoReal);
 
                           return Card(
                             margin: const EdgeInsets.fromLTRB(12, 8, 12, 4),
@@ -436,3 +437,6 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
     }
   }
 }
+
+
+
