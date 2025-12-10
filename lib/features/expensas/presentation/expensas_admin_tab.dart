@@ -1,8 +1,8 @@
-import 'package:consorcio_360/data/models/expensa.dart';
+﻿import 'package:consorcio_360/data/models/expensa.dart';
 import 'package:consorcio_360/data/repositories/expensas_repository.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensa_admin_detail_screen.dart';
-import 'package:consorcio_360/features/expensas/presentation/nueva_expensa_screen.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensas_utils.dart';
+import 'package:consorcio_360/features/expensas/presentation/nueva_expensa_screen.dart';
 import 'package:flutter/material.dart';
 
 /// Vista de expensas para administrador: filtros y listado por consorcio.
@@ -23,13 +23,16 @@ class ExpensasAdminTab extends StatefulWidget {
 class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
   final ExpensasRepository _repo = ExpensasRepository();
 
+  /// Unidades del consorcio: cada mapa tiene al menos {id, codigo}
   List<Map<String, dynamic>> _unidades = [];
+
+  /// null = todas las unidades
   String? _unidadSeleccionada;
   String _estadoSeleccionado = 'TODOS';
   DateTime? _desde;
   DateTime? _hasta;
 
-  late Future<List<Expensa>> _futureExpensas;
+  Future<List<Expensa>>? _futureExpensas;
   bool _cargandoFiltros = true;
 
   @override
@@ -39,7 +42,9 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
   }
 
   Future<void> _cargarFiltrosYExpensas() async {
-    setState(() => _cargandoFiltros = true);
+    setState(() {
+      _cargandoFiltros = true;
+    });
 
     try {
       final unidades = await _repo.fetchUnidadesDeConsorcio(widget.consorcioId);
@@ -60,7 +65,7 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
   Future<List<Expensa>> _consultarExpensas() {
     return _repo.fetchExpensasAdmin(
       consorcioId: widget.consorcioId,
-      unidadId: _unidadSeleccionada,
+      unidadId: _unidadSeleccionada, // null = todas
       estado: _estadoSeleccionado == 'TODOS' ? null : _estadoSeleccionado,
       desde: _desde,
       hasta: _hasta,
@@ -82,7 +87,7 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
       initialDate: inicial,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
-      helpText: 'Selecciona periodo DESDE',
+      helpText: 'Seleccioná periodo DESDE',
     );
 
     if (date != null) {
@@ -102,7 +107,7 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
       initialDate: inicial,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
-      helpText: 'Selecciona periodo HASTA',
+      helpText: 'Seleccioná periodo HASTA',
     );
 
     if (date != null) {
@@ -141,125 +146,184 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
         Expanded(
           child: RefreshIndicator(
             onRefresh: () async => _aplicarFiltros(),
-            child: FutureBuilder<List<Expensa>>(
-              future: _futureExpensas,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting &&
-                    !_cargandoFiltros) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                if (snapshot.hasError) {
-                  return ListView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    children: [
-                      const SizedBox(height: 80),
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Text(
-                            'Error al cargar expensas: ${snapshot.error}',
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                }
-
-                final expensas = snapshot.data ?? [];
-
-                if (expensas.isEmpty) {
-                  return ListView(
+            child: _futureExpensas == null
+                ? ListView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     children: const [
                       SizedBox(height: 80),
-                      Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Text(
-                            'No se encontraron expensas con los filtros actuales.',
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
+                      Center(child: CircularProgressIndicator()),
                     ],
-                  );
-                }
+                  )
+                : FutureBuilder<List<Expensa>>(
+                    future: _futureExpensas,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting &&
+                          !_cargandoFiltros) {
+                        return ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          children: const [
+                            SizedBox(height: 80),
+                            Center(child: CircularProgressIndicator()),
+                          ],
+                        );
+                      }
 
-                return ListView.builder(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  itemCount: expensas.length,
-                  itemBuilder: (context, index) {
-                    final e = expensas[index];
-                    final unidadMap = _unidades.firstWhere(
-                      (u) => u['id'] == e.unidadId,
-                      orElse: () => <String, dynamic>{},
-                    );
-                    final unidadLabel =
-                        (unidadMap['codigo'] ?? '').toString().trim().isEmpty
-                        ? e.unidadId
-                        : (unidadMap['codigo'] ?? '').toString();
-                    final estadoLabel = formatEstado(e.estado);
-                    final color = estadoColor(e.estado);
-
-                    return Card(
-                      margin: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: ListTile(
-                        onTap: () async {
-                          final recargar = await Navigator.of(context)
-                              .push<bool>(
-                                MaterialPageRoute(
-                                  builder: (_) => ExpensaAdminDetailScreen(
-                                    consorcioId: widget.consorcioId,
-                                    consorcioNombre: widget.consorcioNombre,
-                                    expensa: e,
-                                    unidadCodigo: unidadLabel,
-                                  ),
-                                ),
-                              );
-                          if (recargar == true && mounted) {
-                            setState(() {
-                              _futureExpensas = _consultarExpensas();
-                            });
-                          }
-                        },
-                        leading: const Icon(Icons.receipt_long_outlined),
-                        title: Text(
-                          'Unidad $unidadLabel • ${formatPeriodo(e.periodo)}',
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                        subtitle: Text(
-                          'Vence: ${formatFechaCorta(e.fechaVenc)}',
-                        ),
-                        trailing: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                      if (snapshot.hasError) {
+                        return ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
                           children: [
-                            Text(
-                              formatImporte(e.importeTotal, e.moneda),
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
+                            const SizedBox(height: 80),
+                            Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Text(
+                                  'Error al cargar expensas: ${snapshot.error}',
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Chip(
-                              label: Text(estadoLabel),
-                              visualDensity: VisualDensity.compact,
-                              backgroundColor: color.withValues(alpha: 0.12),
-                              labelStyle: TextStyle(color: color),
+                          ],
+                        );
+                      }
+
+                      final expensas = snapshot.data ?? [];
+
+                      if (expensas.isEmpty) {
+                        return ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          children: const [
+                            SizedBox(height: 80),
+                            Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(16),
+                                child: Text(
+                                  'No se encontraron expensas con los filtros actuales.',
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
                             ),
                           ],
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
+                        );
+                      }
+
+                      return ListView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        itemCount: expensas.length,
+                        itemBuilder: (context, index) {
+                          final e = expensas[index];
+
+                          // Buscar datos de la unidad para mostrar su código.
+                          final unidadMap = _unidades.firstWhere(
+                            (u) => u['id'] == e.unidadId,
+                            orElse: () => <String, dynamic>{},
+                          );
+
+                          final unidadLabel =
+                              (e.unidadCodigo ?? '')
+                                  .toString()
+                                  .trim()
+                                  .isNotEmpty
+                              ? e.unidadCodigo!
+                              : (unidadMap['codigo'] ?? '')
+                                    .toString()
+                                    .trim()
+                                    .isNotEmpty
+                              ? (unidadMap['codigo'] ?? '').toString()
+                              : e.unidadId;
+
+                          final estadoLabel = formatEstado(e.estado);
+                          final color = estadoColor(e.estado);
+
+                          return Card(
+                            margin: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(14),
+                              onTap: () async {
+                                final recargar = await Navigator.of(context)
+                                    .push<bool>(
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            ExpensaAdminDetailScreen(
+                                              consorcioId: widget.consorcioId,
+                                              consorcioNombre:
+                                                  widget.consorcioNombre,
+                                              expensa: e,
+                                              unidadCodigo: unidadLabel,
+                                            ),
+                                      ),
+                                    );
+
+                                if (recargar == true && mounted) {
+                                  setState(() {
+                                    _futureExpensas = _consultarExpensas();
+                                  });
+                                }
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(Icons.receipt_long_outlined),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            'Unidad $unidadLabel • ${formatPeriodo(e.periodo)}',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            'Vence: ${formatFechaCorta(e.fechaVenc)}',
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          formatImporte(
+                                            e.importeTotal,
+                                            e.moneda,
+                                          ),
+                                          style: theme.textTheme.bodyMedium
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Chip(
+                                          label: Text(estadoLabel),
+                                          visualDensity: VisualDensity.compact,
+                                          backgroundColor: color.withValues(
+                                            alpha: 0.12,
+                                          ),
+                                          labelStyle: TextStyle(color: color),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
           ),
         ),
       ],
@@ -291,8 +355,9 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
     );
   }
 
+  /// Filtro de unidad: usa null = todas las unidades.
   Widget _buildFiltroUnidad() {
-    return DropdownButtonFormField<String>(
+    return DropdownButtonFormField<String?>(
       decoration: const InputDecoration(
         labelText: 'Unidad',
         border: OutlineInputBorder(),
@@ -300,9 +365,9 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
       ),
       initialValue: _unidadSeleccionada,
       items: [
-        const DropdownMenuItem(value: null, child: Text('Todas')),
+        const DropdownMenuItem<String?>(value: null, child: Text('Todas')),
         ..._unidades.map(
-          (u) => DropdownMenuItem(
+          (u) => DropdownMenuItem<String?>(
             value: u['id'] as String,
             child: Text((u['codigo'] ?? '').toString()),
           ),
@@ -335,7 +400,9 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
       ],
       onChanged: (value) {
         if (value == null) return;
-        setState(() => _estadoSeleccionado = value);
+        setState(() {
+          _estadoSeleccionado = value;
+        });
         _aplicarFiltros();
       },
     );
@@ -363,7 +430,8 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
         builder: (_) => NuevaExpensaScreen(consorcioId: widget.consorcioId),
       ),
     );
-    if (recargar == true) {
+
+    if (recargar == true && mounted) {
       await _aplicarFiltros();
     }
   }

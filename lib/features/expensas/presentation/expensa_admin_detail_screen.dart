@@ -1,4 +1,5 @@
-﻿import 'package:consorcio_360/data/models/expensa.dart';
+﻿import 'dart:typed_data';
+import 'package:consorcio_360/data/models/expensa.dart';
 import 'package:consorcio_360/data/models/pago_expensa.dart';
 import 'package:consorcio_360/data/repositories/expensas_repository.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensa_pdf_service.dart';
@@ -106,25 +107,73 @@ class _ExpensaAdminDetailScreenState extends State<ExpensaAdminDetailScreen> {
     }
   }
 
-  Future<void> _onVerComprobantePressed(PagoExpensa pago) async {
+  Future<Uint8List> _buildComprobanteBytes(PagoExpensa pago) {
     final consorcioNombre = widget.consorcioNombre ?? widget.consorcioId;
     final unidadCodigo = widget.unidadCodigo ?? _expensaActual.unidadId;
     const moradorNombre = ''; // No almacenado por ahora.
 
-    try {
-      final bytes = await ExpensaPdfService.buildComprobantePago(
-        expensa: _expensaActual,
-        pago: pago,
-        consorcioNombre: consorcioNombre,
-        unidadCodigo: unidadCodigo,
-        moradorNombre: moradorNombre,
-      );
+    return ExpensaPdfService.buildComprobantePago(
+      expensa: _expensaActual,
+      pago: pago,
+      consorcioNombre: consorcioNombre,
+      unidadCodigo: unidadCodigo,
+      moradorNombre: moradorNombre,
+    );
+  }
 
+  void _mostrarOpcionesComprobante(PagoExpensa pago) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.print),
+              title: const Text('Ver / imprimir comprobante'),
+              onTap: () async {
+                Navigator.of(context).pop();
+                await _verComprobante(pago);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.share),
+              title: const Text('Compartir comprobante'),
+              onTap: () async {
+                Navigator.of(context).pop();
+                await _compartirComprobante(pago);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _verComprobante(PagoExpensa pago) async {
+    try {
+      final bytes = await _buildComprobanteBytes(pago);
       await Printing.layoutPdf(onLayout: (_) async => bytes);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al generar comprobante: $e')),
+      );
+    }
+  }
+
+  Future<void> _compartirComprobante(PagoExpensa pago) async {
+    try {
+      final bytes = await _buildComprobanteBytes(pago);
+      await Printing.sharePdf(
+        bytes: bytes,
+        filename:
+            'comprobante-expensa-${_expensaActual.periodo.toIso8601String()}.pdf',
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al compartir comprobante: $e')),
       );
     }
   }
@@ -188,7 +237,7 @@ class _ExpensaAdminDetailScreenState extends State<ExpensaAdminDetailScreen> {
             IconButton(
               icon: const Icon(Icons.picture_as_pdf),
               tooltip: 'Comprobante de pago',
-              onPressed: () => _onVerComprobantePressed(_pagos.first),
+              onPressed: () => _mostrarOpcionesComprobante(_pagos.first),
             ),
           PopupMenuButton<String>(
             onSelected: (value) {
@@ -375,6 +424,7 @@ class _ExpensaAdminDetailScreenState extends State<ExpensaAdminDetailScreen> {
     );
   }
 }
+
 
 
 

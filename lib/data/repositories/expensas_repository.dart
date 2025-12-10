@@ -99,23 +99,26 @@ class ExpensasRepository {
     DateTime? desde,
     DateTime? hasta,
   }) async {
-    dynamic query = _supabase
-        .from('expensas')
-        .select('''
-          id,
-          consorcio_id,
-          unidad_id,
-          periodo,
-          importe_total,
-          estado,
-          fecha_venc,
-          fecha_emision,
-          moneda
-        ''')
-        .eq('consorcio_id', consorcioId)
-        .order('periodo', ascending: false);
+    final selectBuilder = _supabase.from('expensas').select('''
+      id,
+      consorcio_id,
+      unidad_id,
+      periodo,
+      importe_total,
+      estado,
+      fecha_venc,
+      fecha_emision,
+      moneda,
+      unidades ( codigo )
+    ''');
 
-    if (unidadId != null && unidadId.isNotEmpty) {
+    PostgrestFilterBuilder<dynamic> query =
+        selectBuilder.eq('consorcio_id', consorcioId);
+
+    if (unidadId != null &&
+        unidadId.isNotEmpty &&
+        unidadId != 'TODAS' &&
+        unidadId != 'GLOBAL') {
       query = query.eq('unidad_id', unidadId);
     }
 
@@ -133,7 +136,8 @@ class ExpensasRepository {
       query = query.lte('periodo', finMes.toIso8601String());
     }
 
-    final data = await query;
+    final data = await query.order('periodo', ascending: false);
+
     final list = List<Map<String, dynamic>>.from(data as List);
     return list.map(Expensa.fromMap).toList();
   }
@@ -160,16 +164,17 @@ class ExpensasRepository {
   }
 
   /// Inserta pago manual de demo y marca la expensa como pagada.
-  Future<void> marcarComoPagadaDemo({
-    required Expensa expensa,
+  Future<void> marcarExpensaComoPagadaDemo({
+    required String expensaId,
     required String consorcioId,
     required String unidadId,
+    required double importe,
   }) async {
     await _supabase.from('pagos_expensa').insert({
-      'expensa_id': expensa.id,
+      'expensa_id': expensaId,
       'consorcio_id': consorcioId,
       'unidad_id': unidadId,
-      'importe': expensa.importeTotal,
+      'importe': importe,
       'medio_pago': 'EFECTIVO',
       'estado_pago': 'APROBADO',
       'observaciones': 'Pago simulado (demo sin Mercado Pago)',
@@ -178,7 +183,7 @@ class ExpensasRepository {
     await _supabase
         .from('expensas')
         .update({'estado': 'PAGADA'})
-        .eq('id', expensa.id);
+        .eq('id', expensaId);
   }
 
   /// Actualiza solo el estado de una expensa (para admin).

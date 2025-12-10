@@ -35,10 +35,13 @@ class _ExpensasMoradorTabState extends State<ExpensasMoradorTab> {
     await _futureExpensas;
   }
 
-  void _openDetalle(Expensa expensa) {
-    Navigator.of(context).push(
+  Future<void> _openDetalle(Expensa expensa) async {
+    final recargar = await Navigator.of(context).push<bool>(
       MaterialPageRoute(builder: (_) => ExpensaDetailScreen(expensa: expensa)),
     );
+    if (recargar == true && mounted) {
+      await _refresh();
+    }
   }
 
   @override

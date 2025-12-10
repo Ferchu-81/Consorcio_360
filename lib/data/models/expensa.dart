@@ -3,6 +3,7 @@ class Expensa {
   final String id;
   final String consorcioId;
   final String unidadId;
+  final String? unidadCodigo;
   final DateTime periodo; // Representa el mes (ej: 2025-03-01)
   final double importeTotal;
   final String estado; // PENDIENTE / PAGADA / VENCIDA / PARCIAL / ANULADA
@@ -14,6 +15,7 @@ class Expensa {
     required this.id,
     required this.consorcioId,
     required this.unidadId,
+    this.unidadCodigo,
     required this.periodo,
     required this.importeTotal,
     required this.estado,
@@ -27,6 +29,9 @@ class Expensa {
       id: map['id'] as String,
       consorcioId: map['consorcio_id'] as String,
       unidadId: map['unidad_id'] as String,
+      unidadCodigo: (map['unidades'] as Map<String, dynamic>?)
+          ?['codigo']
+          ?.toString(),
       periodo: DateTime.tryParse(map['periodo']?.toString() ?? '') ??
           DateTime.now(),
       importeTotal: _toDouble(map['importe_total']),
@@ -45,6 +50,7 @@ class Expensa {
       'id': id,
       'consorcio_id': consorcioId,
       'unidad_id': unidadId,
+      'unidad_codigo': unidadCodigo,
       'periodo': periodo.toIso8601String(),
       'importe_total': importeTotal,
       'estado': estado,
@@ -58,6 +64,7 @@ class Expensa {
     String? id,
     String? consorcioId,
     String? unidadId,
+    String? unidadCodigo,
     DateTime? periodo,
     double? importeTotal,
     String? estado,
@@ -69,6 +76,7 @@ class Expensa {
       id: id ?? this.id,
       consorcioId: consorcioId ?? this.consorcioId,
       unidadId: unidadId ?? this.unidadId,
+      unidadCodigo: unidadCodigo ?? this.unidadCodigo,
       periodo: periodo ?? this.periodo,
       importeTotal: importeTotal ?? this.importeTotal,
       estado: estado ?? this.estado,

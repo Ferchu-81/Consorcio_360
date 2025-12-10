@@ -1,3 +1,4 @@
+﻿import 'dart:typed_data';
 import 'package:consorcio_360/core/state/current_context_notifier.dart';
 import 'package:consorcio_360/data/models/expensa.dart';
 import 'package:consorcio_360/data/models/pago_expensa.dart';
@@ -88,45 +89,81 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
     setState(() => _marcandoPago = true);
 
     try {
-      await _repository.marcarComoPagadaDemo(
-        expensa: _currentExpensa,
+      await _repository.marcarExpensaComoPagadaDemo(
+        expensaId: _currentExpensa.id,
         consorcioId: contexto.consorcioId,
         unidadId: contexto.unidadId,
+        importe: _currentExpensa.importeTotal,
       );
-      await _loadDetalle();
 
       if (!mounted) return;
+      setState(() {
+        _expensa = _currentExpensa.copyWith(estado: 'PAGADA');
+        _marcandoPago = false;
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Expensa marcada como pagada (demo).')),
       );
-    } catch (_) {
+
+      Navigator.of(context).pop(true);
+    } catch (e) {
       if (!mounted) return;
+      setState(() => _marcandoPago = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se pudo registrar el pago.')),
+        SnackBar(content: Text('No se pudo registrar el pago: $e')),
       );
-    } finally {
-      if (mounted) {
-        setState(() => _marcandoPago = false);
-      }
     }
   }
 
-  Future<void> _onVerComprobantePressed(PagoExpensa pago) async {
+  void _mostrarOpcionesComprobante(PagoExpensa pago) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.print),
+              title: const Text('Ver / imprimir comprobante'),
+              onTap: () async {
+                Navigator.of(context).pop();
+                await _verComprobante(pago);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.share),
+              title: const Text('Compartir comprobante'),
+              onTap: () async {
+                Navigator.of(context).pop();
+                await _compartirComprobante(pago);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<Uint8List> _buildComprobanteBytes(PagoExpensa pago) {
     final contexto = context.read<CurrentContextNotifier>().current;
     final consorcioNombre =
         contexto?.consorcioNombre ?? _currentExpensa.consorcioId;
     final unidadCodigo = contexto?.unidadCodigo ?? _currentExpensa.unidadId;
-    final moradorNombre = ''; // No se almacena en contexto actualmente.
+    const moradorNombre = ''; // No se almacena en contexto actualmente.
 
+    return ExpensaPdfService.buildComprobantePago(
+      expensa: _currentExpensa,
+      pago: pago,
+      consorcioNombre: consorcioNombre,
+      unidadCodigo: unidadCodigo,
+      moradorNombre: moradorNombre,
+    );
+  }
+
+  Future<void> _verComprobante(PagoExpensa pago) async {
     try {
-      final bytes = await ExpensaPdfService.buildComprobantePago(
-        expensa: _currentExpensa,
-        pago: pago,
-        consorcioNombre: consorcioNombre,
-        unidadCodigo: unidadCodigo,
-        moradorNombre: moradorNombre,
-      );
-
+      final bytes = await _buildComprobanteBytes(pago);
       await Printing.layoutPdf(onLayout: (_) async => bytes);
     } catch (e) {
       if (!mounted) return;
@@ -134,6 +171,74 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
         SnackBar(content: Text('Error al generar comprobante: $e')),
       );
     }
+  }
+
+  Future<void> _compartirComprobante(PagoExpensa pago) async {
+    try {
+      final bytes = await _buildComprobanteBytes(pago);
+      await Printing.sharePdf(
+        bytes: bytes,
+        filename:
+            'comprobante-expensa-${_currentExpensa.periodo.toIso8601String()}.pdf',
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al compartir comprobante: $e')),
+      );
+    }
+  }
+
+  void _mostrarOpcionesPago() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.receipt_long),
+              title: const Text('Pago manual (demo)'),
+              onTap: () async {
+                Navigator.of(context).pop();
+                await _marcarComoPagada();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.qr_code),
+              title: const Text('Pagar con pasarela (prÃ³ximamente)'),
+              onTap: () {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'La integracion con Mercado Pago se implementara en la siguiente etapa.',
+                    ),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.picture_as_pdf),
+              title: const Text('Generar boleta para pago presencial'),
+              onTap: () async {
+                Navigator.of(context).pop();
+                await _generarBoletaPagoPdf();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _generarBoletaPagoPdf() async {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Generacion de boleta pendiente de implementar.'),
+      ),
+    );
   }
 
   @override
@@ -234,27 +339,27 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
                 ),
               ),
             ),
-            if (_puedeMarcarDemo) ...[
+            if (_currentExpensa.estado != 'PAGADA') ...[
               const SizedBox(height: 12),
-              FilledButton.icon(
-                onPressed: _marcandoPago ? null : _marcarComoPagada,
-                icon: _marcandoPago
-                    ? const SizedBox(
-                        height: 18,
-                        width: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.check_circle_outline),
-                label: Text(
-                  _marcandoPago
-                      ? 'Registrando pago...'
-                      : 'Marcar como pagada (demo)',
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _marcandoPago ? null : _mostrarOpcionesPago,
+                  child: _marcandoPago
+                      ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Pagar expensa'),
                 ),
               ),
-              const SizedBox(height: 4),
-              const Text(
-                'Usa este boton solo en modo demo. El pago real con Mercado Pago se conectara despues.',
-              ),
+              if (_puedeMarcarDemo) ...[
+                const SizedBox(height: 4),
+                const Text(
+                  'Opciones demo habilitadas. La integracion con pasarela se agregara despues.',
+                ),
+              ],
             ],
             if (estaPagada && tienePagos) ...[
               const SizedBox(height: 12),
@@ -262,8 +367,8 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.picture_as_pdf),
-                  label: const Text('Ver comprobante'),
-                  onPressed: () => _onVerComprobantePressed(_pagos.first),
+                  label: const Text('Comprobante'),
+                  onPressed: () => _mostrarOpcionesComprobante(_pagos.first),
                 ),
               ),
             ],
@@ -324,3 +429,4 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
     );
   }
 }
+
