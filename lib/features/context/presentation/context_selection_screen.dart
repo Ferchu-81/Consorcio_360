@@ -1,7 +1,8 @@
 import 'package:consorcio_360/core/state/current_context_notifier.dart';
+import 'package:consorcio_360/core/services/context_storage.dart';
 import 'package:consorcio_360/data/models/usuario_contexto.dart';
 import 'package:consorcio_360/features/auth/presentation/login_screen.dart';
-import 'package:consorcio_360/features/reclamos/presentation/main_home_screen.dart';
+import 'package:consorcio_360/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -68,6 +69,7 @@ class _ContextSelectionScreenState extends State<ContextSelectionScreen> {
 
   Future<void> _logout() async {
     await Supabase.instance.client.auth.signOut();
+    await ContextStorage.limpiarContexto();
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -150,12 +152,18 @@ class _ContextSelectionScreenState extends State<ContextSelectionScreen> {
                           visualDensity: VisualDensity.compact,
                         )
                       : null,
-                  onTap: () {
+                  onTap: () async {
+                    final navigator = Navigator.of(context);
                     // 1) Guardamos el contexto globalmente
                     context.read<CurrentContextNotifier>().setContext(ctx);
-                    // 2) Navegamos al Home
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => const MainHomeScreen()),
+                    // 2) Persistimos la elección
+                    await ContextStorage.guardarContexto(ctx);
+                    if (!mounted) return;
+                    // 3) Navegamos al dashboard
+                    navigator.pushReplacement(
+                      MaterialPageRoute(
+                        builder: (_) => DashboardScreen(contexto: ctx),
+                      ),
                     );
                   },
                 ),

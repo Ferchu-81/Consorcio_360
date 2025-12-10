@@ -1,4 +1,5 @@
-﻿import 'dart:typed_data';
+import 'dart:typed_data';
+
 import 'package:consorcio_360/data/models/expensa.dart';
 import 'package:consorcio_360/data/models/pago_expensa.dart';
 import 'package:consorcio_360/data/repositories/expensas_repository.dart';
@@ -32,7 +33,7 @@ class _ExpensaAdminDetailScreenState extends State<ExpensaAdminDetailScreen> {
 
   late Expensa _expensaActual;
   late Future<List<PagoExpensa>> _futurePagos;
-  String _estadoSeleccionado = 'PENDIENTE';
+  String? _estadoSeleccionado = 'PENDIENTE';
   bool _guardandoEstado = false;
   List<PagoExpensa> _pagos = [];
 
@@ -49,61 +50,32 @@ class _ExpensaAdminDetailScreenState extends State<ExpensaAdminDetailScreen> {
     });
   }
 
-  Future<void> _actualizarEstado() async {
-    if (_estadoSeleccionado == _expensaActual.estado) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('El estado no cambio.')));
-      return;
-    }
-
-    final confirmar = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirmar cambio de estado'),
-        content: Text(
-          'La expensa pasara de ${_expensaActual.estado} '
-          'a $_estadoSeleccionado. Confirmas?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Confirmar'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmar != true) return;
+  Future<void> _guardarEstado() async {
+    if (_estadoSeleccionado == null) return;
 
     setState(() => _guardandoEstado = true);
 
     try {
       await _repo.actualizarEstadoExpensa(
         expensaId: _expensaActual.id,
-        nuevoEstado: _estadoSeleccionado,
+        nuevoEstado: _estadoSeleccionado!,
       );
 
       if (!mounted) return;
+
       setState(() {
-        _expensaActual = _expensaActual.copyWith(estado: _estadoSeleccionado);
+        _expensaActual = _expensaActual.copyWith(estado: _estadoSeleccionado!);
         _guardandoEstado = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Estado actualizado correctamente')),
-      );
 
+      // Notifica a la lista para recargar.
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
+      setState(() => _guardandoEstado = false);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error al actualizar estado: $e')));
-      setState(() => _guardandoEstado = false);
     }
   }
 
@@ -181,7 +153,8 @@ class _ExpensaAdminDetailScreenState extends State<ExpensaAdminDetailScreen> {
   Future<void> _confirmarAnulacion() async {
     if (_expensaActual.estado == 'ANULADA') return;
 
-    final ok = await showDialog<bool>(
+    final ok =
+        await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Anular expensa'),
@@ -214,9 +187,9 @@ class _ExpensaAdminDetailScreenState extends State<ExpensaAdminDetailScreen> {
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al anular expensa: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error al anular expensa: $e')));
     }
   }
 
@@ -246,10 +219,7 @@ class _ExpensaAdminDetailScreenState extends State<ExpensaAdminDetailScreen> {
               }
             },
             itemBuilder: (_) => const [
-              PopupMenuItem(
-                value: 'anular',
-                child: Text('Anular expensa'),
-              ),
+              PopupMenuItem(value: 'anular', child: Text('Anular expensa')),
             ],
           ),
         ],
@@ -275,7 +245,9 @@ class _ExpensaAdminDetailScreenState extends State<ExpensaAdminDetailScreen> {
                     style: theme.textTheme.titleMedium,
                   ),
                   const SizedBox(height: 4),
-                  Text('Consorcio: ${widget.consorcioNombre ?? widget.consorcioId}'),
+                  Text(
+                    'Consorcio: ${widget.consorcioNombre ?? widget.consorcioId}',
+                  ),
                   Text('Vence: ${formatFechaCorta(e.fechaVenc)}'),
                   const SizedBox(height: 10),
                   Row(
@@ -318,7 +290,7 @@ class _ExpensaAdminDetailScreenState extends State<ExpensaAdminDetailScreen> {
                       ),
                       const SizedBox(width: 10),
                       ElevatedButton(
-                        onPressed: _guardandoEstado ? null : _actualizarEstado,
+                        onPressed: _guardandoEstado ? null : _guardarEstado,
                         child: _guardandoEstado
                             ? const SizedBox(
                                 width: 16,
@@ -424,9 +396,3 @@ class _ExpensaAdminDetailScreenState extends State<ExpensaAdminDetailScreen> {
     );
   }
 }
-
-
-
-
-
-

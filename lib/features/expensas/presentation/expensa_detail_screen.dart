@@ -24,15 +24,16 @@ class ExpensaDetailScreen extends StatefulWidget {
 class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
   final ExpensasRepository _repository = ExpensasRepository();
 
-  Expensa? _expensa;
+  late Expensa _expensa;
   List<PagoExpensa> _pagos = [];
   bool _loading = true;
   String? _error;
-  bool _marcandoPago = false;
+  bool _pagando = false;
 
   @override
   void initState() {
     super.initState();
+    _expensa = widget.expensa;
     _loadDetalle();
   }
 
@@ -67,56 +68,62 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
     }
   }
 
-  Expensa get _currentExpensa => _expensa ?? widget.expensa;
-
   bool get _puedeMarcarDemo {
     final contexto = context.read<CurrentContextNotifier>().current;
     final esAdmin = contexto?.rol == 'ADMIN_CONSORCIO';
     return kDemoPagosHabilitado &&
         !esAdmin &&
-        _currentExpensa.estado == 'PENDIENTE';
+        _expensa.estado == 'PENDIENTE';
   }
 
-  Future<void> _marcarComoPagada() async {
+  Future<void> _pagoManualDemo() async {
     final contexto = context.read<CurrentContextNotifier>().current;
-    if (contexto == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No hay contexto seleccionado.')),
-      );
-      return;
-    }
+    final consorcioId = contexto?.consorcioId ?? _expensa.consorcioId;
+    final unidadId = contexto?.unidadId ?? _expensa.unidadId;
 
-    setState(() => _marcandoPago = true);
+    setState(() => _pagando = true);
 
     try {
       await _repository.marcarExpensaComoPagadaDemo(
-        expensaId: _currentExpensa.id,
-        consorcioId: contexto.consorcioId,
-        unidadId: contexto.unidadId,
-        importe: _currentExpensa.importeTotal,
+        expensaId: _expensa.id,
+        consorcioId: consorcioId,
+        unidadId: unidadId,
+        importe: _expensa.importeTotal,
       );
 
       if (!mounted) return;
-      setState(() {
-        _expensa = _currentExpensa.copyWith(estado: 'PAGADA');
-        _marcandoPago = false;
-      });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Expensa marcada como pagada (demo).')),
-      );
+      setState(() {
+        _expensa = _expensa.copyWith(estado: 'PAGADA');
+        _pagando = false;
+      });
 
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
-      setState(() => _marcandoPago = false);
+      setState(() => _pagando = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No se pudo registrar el pago: $e')),
+        SnackBar(content: Text('Error al registrar pago: $e')),
       );
     }
   }
 
-  void _mostrarOpcionesComprobante(PagoExpensa pago) {
+  Future<Uint8List> _buildComprobanteExpensaBytes() {
+    final contexto = context.read<CurrentContextNotifier>().current;
+    final consorcioNombre =
+        contexto?.consorcioNombre ?? _expensa.consorcioId;
+    final unidadCodigo = contexto?.unidadCodigo ?? _expensa.unidadId;
+    const moradorNombre = '';
+
+    return ExpensaPdfService.buildComprobanteExpensa(
+      expensa: _expensa,
+      consorcioNombre: consorcioNombre,
+      unidadCodigo: unidadCodigo,
+      moradorNombre: moradorNombre,
+    );
+  }
+
+  void _mostrarOpcionesComprobanteExpensa() {
     showModalBottomSheet(
       context: context,
       builder: (context) => SafeArea(
@@ -128,7 +135,7 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
               title: const Text('Ver / imprimir comprobante'),
               onTap: () async {
                 Navigator.of(context).pop();
-                await _verComprobante(pago);
+                await _verComprobanteExpensa();
               },
             ),
             ListTile(
@@ -136,7 +143,7 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
               title: const Text('Compartir comprobante'),
               onTap: () async {
                 Navigator.of(context).pop();
-                await _compartirComprobante(pago);
+                await _compartirComprobanteExpensa();
               },
             ),
           ],
@@ -145,25 +152,9 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
     );
   }
 
-  Future<Uint8List> _buildComprobanteBytes(PagoExpensa pago) {
-    final contexto = context.read<CurrentContextNotifier>().current;
-    final consorcioNombre =
-        contexto?.consorcioNombre ?? _currentExpensa.consorcioId;
-    final unidadCodigo = contexto?.unidadCodigo ?? _currentExpensa.unidadId;
-    const moradorNombre = ''; // No se almacena en contexto actualmente.
-
-    return ExpensaPdfService.buildComprobantePago(
-      expensa: _currentExpensa,
-      pago: pago,
-      consorcioNombre: consorcioNombre,
-      unidadCodigo: unidadCodigo,
-      moradorNombre: moradorNombre,
-    );
-  }
-
-  Future<void> _verComprobante(PagoExpensa pago) async {
+  Future<void> _verComprobanteExpensa() async {
     try {
-      final bytes = await _buildComprobanteBytes(pago);
+      final bytes = await _buildComprobanteExpensaBytes();
       await Printing.layoutPdf(onLayout: (_) async => bytes);
     } catch (e) {
       if (!mounted) return;
@@ -173,13 +164,13 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
     }
   }
 
-  Future<void> _compartirComprobante(PagoExpensa pago) async {
+  Future<void> _compartirComprobanteExpensa() async {
     try {
-      final bytes = await _buildComprobanteBytes(pago);
+      final bytes = await _buildComprobanteExpensaBytes();
       await Printing.sharePdf(
         bytes: bytes,
         filename:
-            'comprobante-expensa-${_currentExpensa.periodo.toIso8601String()}.pdf',
+            'comprobante-expensa-${_expensa.periodo.toIso8601String()}.pdf',
       );
     } catch (e) {
       if (!mounted) return;
@@ -187,6 +178,26 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
         SnackBar(content: Text('Error al compartir comprobante: $e')),
       );
     }
+  }
+
+  Future<void> _generarBoletaPdf() async {
+    final contexto = context.read<CurrentContextNotifier>().current;
+    final consorcioNombre =
+        contexto?.consorcioNombre ?? _expensa.consorcioId;
+    final unidadCodigo = contexto?.unidadCodigo ?? _expensa.unidadId;
+    const moradorNombre = '';
+
+    final bytes = await ExpensaPdfService.buildBoletaExpensa(
+      expensa: _expensa,
+      consorcioNombre: consorcioNombre,
+      unidadCodigo: unidadCodigo,
+      moradorNombre: moradorNombre,
+    );
+
+    await Printing.sharePdf(
+      bytes: bytes,
+      filename: 'boleta-expensa-${_expensa.periodo.toIso8601String()}.pdf',
+    );
   }
 
   void _mostrarOpcionesPago() {
@@ -201,18 +212,18 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
               title: const Text('Pago manual (demo)'),
               onTap: () async {
                 Navigator.of(context).pop();
-                await _marcarComoPagada();
+                await _pagoManualDemo();
               },
             ),
             ListTile(
               leading: const Icon(Icons.qr_code),
-              title: const Text('Pagar con pasarela (prÃ³ximamente)'),
+              title: const Text('Pagar con pasarela (próximamente)'),
               onTap: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text(
-                      'La integracion con Mercado Pago se implementara en la siguiente etapa.',
+                      'La integración con la pasarela de pago se implementará en la siguiente etapa.',
                     ),
                   ),
                 );
@@ -223,7 +234,7 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
               title: const Text('Generar boleta para pago presencial'),
               onTap: () async {
                 Navigator.of(context).pop();
-                await _generarBoletaPagoPdf();
+                await _generarBoletaPdf();
               },
             ),
           ],
@@ -232,25 +243,15 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
     );
   }
 
-  Future<void> _generarBoletaPagoPdf() async {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Generacion de boleta pendiente de implementar.'),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final expensa = _currentExpensa;
+    final expensa = _expensa;
     final estadoLabel = formatEstado(expensa.estado);
     final unidadLabel =
         context.watch<CurrentContextNotifier>().current?.unidadCodigo ??
         expensa.unidadId;
     final estaPagada = expensa.estado == 'PAGADA';
-    final tienePagos = _pagos.isNotEmpty;
 
     if (_loading) {
       return Scaffold(
@@ -339,13 +340,13 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
                 ),
               ),
             ),
-            if (_currentExpensa.estado != 'PAGADA') ...[
+            if (!estaPagada) ...[
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _marcandoPago ? null : _mostrarOpcionesPago,
-                  child: _marcandoPago
+                  onPressed: _pagando ? null : _mostrarOpcionesPago,
+                  child: _pagando
                       ? const SizedBox(
                           height: 18,
                           width: 18,
@@ -357,18 +358,18 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
               if (_puedeMarcarDemo) ...[
                 const SizedBox(height: 4),
                 const Text(
-                  'Opciones demo habilitadas. La integracion con pasarela se agregara despues.',
+                  'Opciones demo habilitadas. La integración con pasarela se agregará después.',
                 ),
               ],
             ],
-            if (estaPagada && tienePagos) ...[
+            if (estaPagada) ...[
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.picture_as_pdf),
                   label: const Text('Comprobante'),
-                  onPressed: () => _mostrarOpcionesComprobante(_pagos.first),
+                  onPressed: _mostrarOpcionesComprobanteExpensa,
                 ),
               ),
             ],
@@ -429,4 +430,6 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
     );
   }
 }
+
+
 

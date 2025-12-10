@@ -79,9 +79,9 @@ class _NuevaExpensaScreenState extends State<NuevaExpensaScreen> {
   Future<void> _guardar() async {
     if (!_formKey.currentState!.validate()) return;
     if (_unidadSeleccionada == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Selecciona una unidad')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Seleccioná una unidad o GLOBAL')),
+      );
       return;
     }
 
@@ -89,9 +89,9 @@ class _NuevaExpensaScreenState extends State<NuevaExpensaScreen> {
       _importeController.text.replaceAll(',', '.'),
     );
     if (importe == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Importe invalido')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Importe inválido')),
+      );
       return;
     }
 
@@ -163,8 +163,6 @@ class _NuevaExpensaScreenState extends State<NuevaExpensaScreen> {
                           _unidadSeleccionada = value;
                         });
                       },
-                validator: (value) =>
-                    value == null ? 'Selecciona una unidad' : null,
               ),
               const SizedBox(height: 12),
               ListTile(

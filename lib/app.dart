@@ -3,7 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'features/auth/presentation/login_screen.dart';
-import 'features/context/presentation/context_selection_screen.dart';
+import 'features/root/presentation/root_screen.dart';
 
 class Consorcio360App extends StatelessWidget {
   const Consorcio360App({super.key});
@@ -41,7 +41,7 @@ class AuthGate extends StatelessWidget {
     if (session == null) {
       return const LoginScreen();
     } else {
-      return const ContextSelectionScreen();
+      return const RootScreen();
     }
   }
 }
