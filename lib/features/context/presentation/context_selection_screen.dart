@@ -163,10 +163,11 @@ class _ContextSelectionScreenState extends State<ContextSelectionScreen> {
                     await ContextStorage.guardarContexto(ctx);
                     if (!mounted) return;
                     // 3) Navegamos al home principal
-                    navigator.pushReplacement(
+                    navigator.pushAndRemoveUntil(
                       MaterialPageRoute(
                         builder: (_) => MainHomeScreen(contexto: ctx),
                       ),
+                      (route) => false,
                     );
                   },
                 ),

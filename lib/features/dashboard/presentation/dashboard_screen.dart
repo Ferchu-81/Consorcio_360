@@ -1,4 +1,4 @@
-﻿import 'package:consorcio_360/core/services/context_storage.dart';
+import 'package:consorcio_360/core/services/context_storage.dart';
 import 'package:consorcio_360/data/models/usuario_contexto.dart';
 import 'package:consorcio_360/features/context/presentation/context_selection_screen.dart';
 import 'package:consorcio_360/features/reclamos/presentation/main_home_screen.dart';
@@ -22,6 +22,13 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final rawNombre = contexto.nombre?.trim();
+    final nombre = (rawNombre != null &&
+            rawNombre.isNotEmpty &&
+            !rawNombre.contains('@'))
+        ? rawNombre
+        : 'Usuario';
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Consorcio 360 - ${contexto.consorcioNombre}'),
@@ -37,12 +44,12 @@ class DashboardScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         children: [
           Text(
-            'Hola, ${contexto.rolLegible}',
+            'Hola, $nombre',
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
           Text(
-            'Unidad ${contexto.unidadCodigo} - ${contexto.consorcioNombre}',
+            '${contexto.rolLegible} · Unidad ${contexto.unidadCodigo} - ${contexto.consorcioNombre}',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 16),

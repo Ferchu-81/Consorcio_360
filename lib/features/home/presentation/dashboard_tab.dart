@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Ajustá estos dos String según tu modelo de contexto.
 class DashboardTab extends StatelessWidget {
   final String nombre;
   final String rolDescripcion;
@@ -39,10 +38,10 @@ class DashboardTab extends StatelessWidget {
             child: const Padding(
               padding: EdgeInsets.all(16),
               child: Text(
-                'Resumen rápido (en construcción):\n'
-                '• Expensas pendientes / vencidas\n'
-                '• Últimos reclamos\n'
-                '• Avisos del administrador',
+                'Resumen r\u00e1pido (en construcci\u00f3n):\n'
+                '\u2022 Expensas pendientes / vencidas\n'
+                '\u2022 \u00daltimos reclamos\n'
+                '\u2022 Avisos del administrador',
               ),
             ),
           ),
