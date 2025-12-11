@@ -66,7 +66,10 @@ class _PagosTabState extends State<PagosTab> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text('No se pudieron cargar los pagos.'),
+                        Text(
+                          'Error al cargar pagos: ${snapshot.error}',
+                          textAlign: TextAlign.center,
+                        ),
                         const SizedBox(height: 12),
                         FilledButton.icon(
                           onPressed: _refresh,
