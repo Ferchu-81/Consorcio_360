@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Ajustá estos dos String según tu modelo de contexto.
 class DashboardTab extends StatelessWidget {
   final String nombre;
   final String rolDescripcion;

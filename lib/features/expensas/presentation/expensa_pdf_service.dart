@@ -38,10 +38,7 @@ class ExpensaPdfService {
             pw.Text('Comprobante de pago de expensa'),
             pw.SizedBox(height: 12),
             pw.Text('Unidad: $unidadCodigo'),
-            pw.Text(
-              'Titular / Morador: '
-              '${moradorNombre.isEmpty ? '-' : moradorNombre}',
-            ),
+            pw.Text('Titular / Morador: $moradorNombre'),
             pw.SizedBox(height: 8),
             pw.Text('Periodo: ${formatPeriodo(expensa.periodo)}'),
             pw.Text('Importe total: $importeExpensa'),
@@ -94,10 +91,7 @@ class ExpensaPdfService {
             pw.Text('Comprobante de expensa'),
             pw.SizedBox(height: 12),
             pw.Text('Unidad: $unidadCodigo'),
-            pw.Text(
-              'Titular / Morador: '
-              '${moradorNombre.isEmpty ? '-' : moradorNombre}',
-            ),
+            pw.Text('Titular / Morador: $moradorNombre'),
             pw.SizedBox(height: 8),
             pw.Text('Periodo: ${formatPeriodo(expensa.periodo)}'),
             pw.Text('Importe total: $importeExpensa'),
@@ -140,10 +134,7 @@ class ExpensaPdfService {
             pw.Text('Boleta de expensa'),
             pw.SizedBox(height: 12),
             pw.Text('Unidad: $unidadCodigo'),
-            pw.Text(
-              'Titular / Morador: '
-              '${moradorNombre.isEmpty ? '-' : moradorNombre}',
-            ),
+            pw.Text('Titular / Morador: $moradorNombre'),
             pw.SizedBox(height: 8),
             pw.Text('Periodo: ${formatPeriodo(expensa.periodo)}'),
             pw.Text('Importe a abonar: $importe'),

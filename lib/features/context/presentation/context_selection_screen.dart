@@ -28,44 +28,61 @@ class _ContextSelectionScreenState extends State<ContextSelectionScreen> {
     final user = supabase.auth.currentUser;
 
     if (user == null) {
-      throw Exception('No hay usuario autenticado.');
+      throw Exception('No hay usuario logueado');
     }
 
     final response = await supabase
         .from('usuarios_unidades')
         .select('''
+        id,
+        rol,
+        es_titular,
+        unidades (
           id,
-          rol,
-          es_titular,
-          unidad:unidades (
+          codigo,
+          consorcio_id,
+          consorcios (
             id,
-            codigo,
-            consorcio:consorcios (
-              id,
-              nombre
-            )
+            nombre
           )
-          ''')
+        ),
+        usuarios (
+          nombre,
+          apellido,
+          email
+        )
+      ''')
         .eq('usuario_id', user.id);
+
+    if (response.isEmpty) {
+      return [];
+    }
 
     final data = response as List<dynamic>;
 
-    return data.map((row) {
-      final map = row as Map<String, dynamic>;
-      final unidad = map['unidad'] as Map<String, dynamic>;
-      final consorcio = unidad['consorcio'] as Map<String, dynamic>;
-      final nombreUsuario =
-          (user.userMetadata?['full_name'] as String?) ?? user.email;
+    return data.map<UsuarioContexto>((row) {
+      final unidad = row['unidades'] as Map<String, dynamic>;
+      final consorcio = unidad['consorcios'] as Map<String, dynamic>;
+      final usuario = row['usuarios'] as Map<String, dynamic>;
+
+      final nombre = (usuario['nombre'] as String?)?.trim() ?? '';
+      final apellido = (usuario['apellido'] as String?)?.trim() ?? '';
+      final email = (usuario['email'] as String?) ?? '';
+
+      final nombreCompleto = [
+        if (nombre.isNotEmpty) nombre,
+        if (apellido.isNotEmpty) apellido,
+      ].join(' ').trim();
 
       return UsuarioContexto(
-        usuarioUnidadId: map['id'] as String,
-        consorcioId: consorcio['id'] as String,
+        usuarioUnidadId: row['id'] as String,
+        consorcioId: unidad['consorcio_id'] as String,
         consorcioNombre: consorcio['nombre'] as String,
         unidadId: unidad['id'] as String,
         unidadCodigo: unidad['codigo'] as String,
-        nombre: nombreUsuario,
-        rol: map['rol'] as String,
-        esTitular: map['es_titular'] as bool? ?? false,
+        nombre: nombreCompleto.isNotEmpty ? nombreCompleto : email,
+        rol: row['rol'] as String,
+        esTitular: row['es_titular'] as bool? ?? false,
       );
     }).toList();
   }

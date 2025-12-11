@@ -57,7 +57,7 @@ class ExpensaPdfService {
                       ),
                     ),
                     pw.SizedBox(height: 4),
-                    pw.Text('Período: ${expensa.periodoFormatted}'),
+                    pw.Text('Periodo: ${expensa.periodoFormatted}'),
                     pw.Text('Vencimiento: ${expensa.fechaVencFormatted}'),
                   ],
                 ),
@@ -124,9 +124,8 @@ class ExpensaPdfService {
               style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
             ),
             pw.SizedBox(height: 4),
-            pw.Text(
-              'Fecha de pago: ${pago.fechaFormatted} • Importe: ${_fmt(pago.importe)}',
-            ),
+            pw.Text('Fecha de pago: ${pago.fechaFormatted}'),
+            pw.Text('Importe: ${_fmt(pago.importe)}'),
             pw.Text('Medio de pago: ${pago.medioPago}'),
             if ((pago.observaciones ?? '').trim().isNotEmpty)
               pw.Text('Observaciones: ${pago.observaciones}'),
@@ -134,11 +133,11 @@ class ExpensaPdfService {
             pw.Divider(),
             pw.SizedBox(height: 4),
             pw.Text(
-              'Este comprobante acredita el pago de expensas para el período indicado.',
+              'Este comprobante acredita el pago de expensas para el periodo indicado.',
               style: const pw.TextStyle(fontSize: 9),
             ),
             pw.Text(
-              'Consorcio 360 - Generado desde la aplicación móvil.',
+              'Consorcio 360 - Generado desde la aplicacion movil.',
               style: const pw.TextStyle(fontSize: 9),
             ),
           ],
@@ -184,7 +183,7 @@ class ExpensaPdfService {
               ),
             ),
             pw.SizedBox(height: 6),
-            pw.Text('Período: ${expensa.periodoFormatted}'),
+            pw.Text('Periodo: ${expensa.periodoFormatted}'),
             pw.Text('Vencimiento: ${expensa.fechaVencFormatted}'),
             pw.SizedBox(height: 10),
             pw.Text('Unidad: $unidadCodigo'),

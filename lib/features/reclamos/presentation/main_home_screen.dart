@@ -26,13 +26,20 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
   int _currentIndex = 0;
   late final List<Widget> _tabs;
 
+  String _displayName(String? raw) {
+    final value = raw?.trim() ?? '';
+    if (value.isEmpty) return 'Usuario';
+    if (value.contains('@')) return 'Usuario';
+    return value;
+  }
+
   @override
   void initState() {
     super.initState();
     // Asegura que el notifier tenga el contexto actual.
     context.read<CurrentContextNotifier>().setContext(widget.contexto);
 
-    final nombre = widget.contexto.nombre ?? 'Usuario';
+    final nombre = _displayName(widget.contexto.nombre);
     final rolDesc = widget.contexto.rolDescripcion;
 
     _tabs = [
@@ -132,12 +139,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
         ? const ConsorcioReclamosScreen()
         : const ReclamosTab();
 
-    final tabs = [
-      _tabs[0],
-      reclamosTab,
-      _tabs[2],
-      _tabs[3],
-    ];
+    final tabs = [_tabs[0], reclamosTab, _tabs[2], _tabs[3]];
 
     return Scaffold(
       appBar: AppBar(
@@ -164,13 +166,17 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
           ),
         ],
       ),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: tabs,
-      ),
+      body: IndexedStack(index: _currentIndex, children: tabs),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (i) => setState(() => _currentIndex = i),
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: const Color(0xFFF5F9F1),
+        selectedItemColor: Colors.black54,
+        unselectedItemColor: Colors.black87,
+        selectedIconTheme: const IconThemeData(size: 26),
+        unselectedIconTheme: const IconThemeData(size: 24),
+        showUnselectedLabels: true,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),

@@ -1,4 +1,4 @@
-﻿import 'package:consorcio_360/core/services/context_storage.dart';
+import 'package:consorcio_360/core/services/context_storage.dart';
 import 'package:consorcio_360/data/models/usuario_contexto.dart';
 import 'package:consorcio_360/features/context/presentation/context_selection_screen.dart';
 import 'package:consorcio_360/features/reclamos/presentation/main_home_screen.dart';
@@ -8,6 +8,13 @@ class DashboardScreen extends StatelessWidget {
   final UsuarioContexto contexto;
 
   const DashboardScreen({super.key, required this.contexto});
+
+  String _displayName(String? raw) {
+    final value = raw?.trim() ?? '';
+    if (value.isEmpty) return 'Usuario';
+    if (value.contains('@')) return 'Usuario';
+    return value;
+  }
 
   Future<void> _cambiarContexto(BuildContext context) async {
     await ContextStorage.limpiarContexto();
@@ -22,6 +29,8 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final nombre = _displayName(contexto.nombre);
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Consorcio 360 - ${contexto.consorcioNombre}'),
@@ -37,12 +46,12 @@ class DashboardScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         children: [
           Text(
-            'Hola, ${contexto.rolLegible}',
+            'Hola, $nombre',
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
           Text(
-            'Unidad ${contexto.unidadCodigo} - ${contexto.consorcioNombre}',
+            '${contexto.rolLegible} · Unidad ${contexto.unidadCodigo} - ${contexto.consorcioNombre}',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 16),
