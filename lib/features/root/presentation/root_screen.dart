@@ -29,7 +29,7 @@ class _RootScreenState extends State<RootScreen> {
       context.read<CurrentContextNotifier>().setContext(ctx);
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (_) => MainHomeScreen(contexto: ctx),
+          builder: (_) => const MainHomeScreen(),
         ),
       );
     } else {

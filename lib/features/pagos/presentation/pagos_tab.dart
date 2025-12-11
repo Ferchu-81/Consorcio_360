@@ -18,7 +18,7 @@ class PagosTab extends StatefulWidget {
 }
 
 class _PagosTabState extends State<PagosTab> {
-  final _repo = ExpensasRepository();
+  final ExpensasRepository _repo = ExpensasRepository();
   late Future<List<PagoExpensa>> _futurePagos;
   Map<String, String> _unidadCodigoPorId = {};
 
@@ -120,20 +120,23 @@ class _PagosTabState extends State<PagosTab> {
             physics: const AlwaysScrollableScrollPhysics(),
             itemCount: pagos.length,
             itemBuilder: (context, index) {
-              final p = pagos[index];
+              final pago = pagos[index];
               final esAdmin = widget.contexto.rol == 'ADMIN_CONSORCIO';
 
               // Mostrar código legible; para admin intentamos mapear id->código.
               final unidadLabel = esAdmin
-                  ? (_unidadCodigoPorId[p.unidadId] ?? p.unidadId)
+                  ? (_unidadCodigoPorId[pago.unidadId] ??
+                      (widget.contexto.unidadCodigo != 'GLOBAL'
+                          ? widget.contexto.unidadCodigo
+                          : pago.unidadId))
                   : widget.contexto.unidadCodigo;
 
-              final periodoLabel = p.periodoExpensa != null
-                  ? formatPeriodo(p.periodoExpensa!)
+              final periodoLabel = pago.periodoExpensa != null
+                  ? formatPeriodo(pago.periodoExpensa!)
                   : '';
-              final color = estadoPagoColor(p.estadoPago);
-              final estadoLabel = formatEstadoPago(p.estadoPago);
-              final medioLabel = formatEstado(p.medioPago);
+              final color = estadoPagoColor(pago.estadoPago);
+              final estadoLabel = formatEstadoPago(pago.estadoPago);
+              final medioLabel = formatEstado(pago.medioPago);
 
               return Card(
                 margin: const EdgeInsets.fromLTRB(12, 8, 12, 4),
@@ -147,7 +150,7 @@ class _PagosTabState extends State<PagosTab> {
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                   subtitle: Text(
-                    'Fecha: ${formatFechaCorta(p.fechaPago)}\n'
+                    'Fecha: ${formatFechaCorta(pago.fechaPago)}\n'
                     'Medio: $medioLabel',
                   ),
                   trailing: Column(
@@ -156,8 +159,8 @@ class _PagosTabState extends State<PagosTab> {
                     children: [
                       Text(
                         formatImporte(
-                          p.importe,
-                          p.monedaExpensa ?? 'ARS',
+                          pago.importe,
+                          pago.monedaExpensa ?? 'ARS',
                         ),
                         style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,

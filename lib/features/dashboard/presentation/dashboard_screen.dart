@@ -78,7 +78,7 @@ class DashboardScreen extends StatelessWidget {
                     onPressed: () {
                       Navigator.of(context).pushReplacement(
                         MaterialPageRoute(
-                          builder: (_) => MainHomeScreen(contexto: contexto),
+                          builder: (_) => const MainHomeScreen(),
                         ),
                       );
                     },

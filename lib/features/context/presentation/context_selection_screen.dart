@@ -182,7 +182,7 @@ class _ContextSelectionScreenState extends State<ContextSelectionScreen> {
                     // 3) Navegamos al home principal
                     navigator.pushReplacement(
                       MaterialPageRoute(
-                        builder: (_) => MainHomeScreen(contexto: ctx),
+                        builder: (_) => const MainHomeScreen(),
                       ),
                     );
                   },

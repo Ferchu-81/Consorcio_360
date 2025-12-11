@@ -1,60 +1,57 @@
-import 'package:consorcio_360/core/services/context_storage.dart';
 import 'package:consorcio_360/core/state/current_context_notifier.dart';
-import 'package:consorcio_360/data/models/usuario_contexto.dart';
 import 'package:consorcio_360/features/auth/presentation/login_screen.dart';
 import 'package:consorcio_360/features/context/presentation/context_selection_screen.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensas_tab.dart';
 import 'package:consorcio_360/features/home/presentation/dashboard_tab.dart';
 import 'package:consorcio_360/features/pagos/presentation/pagos_tab.dart';
-import 'package:consorcio_360/features/reclamos/presentation/consorcio_reclamos_screen.dart';
-import 'package:consorcio_360/features/reclamos/presentation/reclamos_tab.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Home principal con tabs: Inicio / Reclamos / Expensas / Pagos.
-class MainHomeScreen extends StatefulWidget {
-  final UsuarioContexto contexto;
+import 'consorcio_reclamos_screen.dart';
+import 'reclamos_tab.dart';
 
-  const MainHomeScreen({super.key, required this.contexto});
+/// Home principal, con tabs:
+/// Inicio (dashboard) / Reclamos / Expensas / Pagos.
+/// Si el rol actual es ADMIN_CONSORCIO, el tab de Reclamos
+/// muestra el tablero general del consorcio.
+class MainHomeScreen extends StatefulWidget {
+  const MainHomeScreen({super.key});
 
   @override
   State<MainHomeScreen> createState() => _MainHomeScreenState();
 }
 
 class _MainHomeScreenState extends State<MainHomeScreen> {
-  int _currentIndex = 0;
-  late final List<Widget> _tabs;
+  int _selectedIndex = 0;
 
-  String _displayName(String? raw) {
-    final value = raw?.trim() ?? '';
-    if (value.isEmpty) return 'Usuario';
-    if (value.contains('@')) return 'Usuario';
-    return value;
+  void _onTabTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    // Asegura que el notifier tenga el contexto actual.
-    context.read<CurrentContextNotifier>().setContext(widget.contexto);
-
-    final nombre = _displayName(widget.contexto.nombre);
-    final rolDesc = widget.contexto.rolDescripcion;
-
-    _tabs = [
-      DashboardTab(nombre: nombre, rolDescripcion: rolDesc),
-      ReclamosTab(contexto: widget.contexto),
-      ExpensasTab(contexto: widget.contexto),
-      PagosTab(contexto: widget.contexto),
-    ];
+  String _tituloSeccion() {
+    switch (_selectedIndex) {
+      case 0:
+        return 'Inicio';
+      case 1:
+        return 'Reclamos';
+      case 2:
+        return 'Expensas';
+      case 3:
+        return 'Pagos';
+      default:
+        return 'Consorcio 360';
+    }
   }
 
   Future<void> _logout() async {
     await Supabase.instance.client.auth.signOut();
-    await ContextStorage.limpiarContexto();
     if (!mounted) return;
+
     context.read<CurrentContextNotifier>().clear();
+
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const LoginScreen()),
       (route) => false,
@@ -62,8 +59,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
   }
 
   Future<void> _confirmLogout() async {
-    final shouldLogout =
-        await showDialog<bool>(
+    final shouldLogout = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Cerrar sesión'),
@@ -90,9 +86,8 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
   }
 
   Future<void> _changeContext() async {
-    await ContextStorage.limpiarContexto();
-    if (!mounted) return;
     context.read<CurrentContextNotifier>().clear();
+    if (!mounted) return;
 
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const ContextSelectionScreen()),
@@ -101,8 +96,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
   }
 
   Future<void> _confirmChangeContext() async {
-    final shouldChange =
-        await showDialog<bool>(
+    final shouldChange = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Cambiar de rol / unidad'),
@@ -125,39 +119,72 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
         false;
 
     if (!shouldChange) return;
-
     await _changeContext();
   }
 
   @override
   Widget build(BuildContext context) {
-    final ctx = widget.contexto;
-    final esAdmin = ctx.rol == 'ADMIN_CONSORCIO';
+    final current = context.watch<CurrentContextNotifier>();
+    final contexto = current.current;
 
-    // Si es admin y está en Reclamos, mostramos tablero general, si no la vista normal.
-    final reclamosTab = esAdmin
-        ? const ConsorcioReclamosScreen()
-        : const ReclamosTab();
+    if (contexto == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Consorcio 360')),
+        body: const Center(
+          child: Text(
+            'No hay contexto seleccionado.\n'
+            'Volvé a la pantalla anterior.',
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
 
-    final tabs = [_tabs[0], reclamosTab, _tabs[2], _tabs[3]];
+    final bool esAdmin = contexto.rol == 'ADMIN_CONSORCIO';
+
+    // Selección de tab
+    late final Widget body;
+    if (_selectedIndex == 0) {
+      body = DashboardTab(contexto: contexto);
+    } else if (_selectedIndex == 1) {
+      body = esAdmin ? ConsorcioReclamosScreen() : ReclamosTab();
+    } else if (_selectedIndex == 2) {
+      body = ExpensasTab(contexto: contexto);
+    } else {
+      body = PagosTab(contexto: contexto);
+    }
+
+    final tituloSeccion = _tituloSeccion();
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: const Color(0xFFF4F8EE),
+        elevation: 0,
+        shape: const Border(
+          bottom: BorderSide(color: Color(0xFFE0E0E0), width: 0.5),
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${ctx.consorcioNombre} - Unidad ${ctx.unidadCodigo}',
+              '${contexto.consorcioNombre} - Unidad ${contexto.unidadCodigo}',
               style: const TextStyle(fontSize: 14),
             ),
-            Text(ctx.rolLegible, style: const TextStyle(fontSize: 12)),
+            Text(
+              tituloSeccion,
+              style: const TextStyle(fontSize: 12),
+            ),
           ],
         ),
         actions: [
-          IconButton(
-            tooltip: 'Cambiar contexto',
-            icon: const Icon(Icons.swap_horiz),
-            onPressed: _confirmChangeContext,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: ActionChip(
+              label: Text(contexto.rolLegible),
+              avatar: const Icon(Icons.person_outline, size: 18),
+              visualDensity: VisualDensity.compact,
+              onPressed: _confirmChangeContext,
+            ),
           ),
           IconButton(
             tooltip: 'Cerrar sesión',
@@ -166,16 +193,14 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
           ),
         ],
       ),
-      body: IndexedStack(index: _currentIndex, children: tabs),
+      body: body,
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (i) => setState(() => _currentIndex = i),
+        backgroundColor: const Color(0xFFF4F8EE),
         type: BottomNavigationBarType.fixed,
-        backgroundColor: const Color(0xFFF5F9F1),
+        currentIndex: _selectedIndex,
+        onTap: _onTabTapped,
         selectedItemColor: Colors.black54,
         unselectedItemColor: Colors.black87,
-        selectedIconTheme: const IconThemeData(size: 26),
-        unselectedIconTheme: const IconThemeData(size: 24),
         showUnselectedLabels: true,
         items: const [
           BottomNavigationBarItem(
@@ -191,7 +216,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
             label: 'Expensas',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance_wallet_outlined),
+            icon: Icon(Icons.payments_outlined),
             label: 'Pagos',
           ),
         ],
