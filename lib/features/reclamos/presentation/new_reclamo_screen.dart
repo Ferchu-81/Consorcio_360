@@ -44,8 +44,7 @@ class _NewReclamoScreenState extends State<NewReclamoScreen> {
 
     if (user == null || contexto == null) {
       setState(() {
-        _errorMessage =
-            'Sesion o contexto no validos. Volve a iniciar sesion.';
+        _errorMessage = 'Sesion o contexto no validos. Volve a iniciar sesion.';
       });
       return;
     }
@@ -136,8 +135,7 @@ class _NewReclamoScreenState extends State<NewReclamoScreen> {
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _descripcionController,
-                    decoration:
-                        const InputDecoration(labelText: 'Descripcion'),
+                    decoration: const InputDecoration(labelText: 'Descripcion'),
                     maxLines: 4,
                     textCapitalization: TextCapitalization.sentences,
                   ),

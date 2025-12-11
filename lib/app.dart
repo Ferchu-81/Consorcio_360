@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'features/auth/presentation/login_screen.dart';
-import 'features/context/presentation/context_selection_screen.dart';
+import 'features/root/presentation/root_screen.dart';
 
 class Consorcio360App extends StatelessWidget {
   const Consorcio360App({super.key});
@@ -12,6 +13,13 @@ class Consorcio360App extends StatelessWidget {
     return MaterialApp(
       title: 'Consorcio 360',
       debugShowCheckedModeBanner: false,
+      locale: const Locale('es'),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('es')],
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2E7D32)),
         useMaterial3: true,
@@ -33,7 +41,7 @@ class AuthGate extends StatelessWidget {
     if (session == null) {
       return const LoginScreen();
     } else {
-      return const ContextSelectionScreen();
+      return const RootScreen();
     }
   }
 }

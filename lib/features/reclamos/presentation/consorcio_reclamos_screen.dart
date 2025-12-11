@@ -10,10 +10,7 @@ import 'reclamos_utils.dart';
 class ConsorcioReclamosScreen extends StatefulWidget {
   final bool embeddedInHome;
 
-  const ConsorcioReclamosScreen({
-    super.key,
-    this.embeddedInHome = false,
-  });
+  const ConsorcioReclamosScreen({super.key, this.embeddedInHome = false});
 
   @override
   State<ConsorcioReclamosScreen> createState() =>
@@ -176,225 +173,220 @@ class _ConsorcioReclamosScreenState extends State<ConsorcioReclamosScreen> {
     return _isLoading
         ? const Center(child: CircularProgressIndicator())
         : _error != null
-            ? Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(_error!, textAlign: TextAlign.center),
-                      const SizedBox(height: 12),
-                      FilledButton.icon(
-                        onPressed: _loadReclamosConsorcio,
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('Reintentar'),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            : Column(
+        ? Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Filtros
-                  Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
+                  Text(_error!, textAlign: TextAlign.center),
+                  const SizedBox(height: 12),
+                  FilledButton.icon(
+                    onPressed: _loadReclamosConsorcio,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Reintentar'),
+                  ),
+                ],
+              ),
+            ),
+          )
+        : Column(
+            children: [
+              // Filtros
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  children: [
+                    Row(
                       children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: DropdownButtonFormField<String>(
-                                decoration: const InputDecoration(
-                                  labelText: 'Estado',
-                                ),
-                                initialValue: _estadoFiltro,
-                                items: _estadosFiltro
-                                    .map(
-                                      (e) => DropdownMenuItem(
-                                        value: e,
-                                        child: Text(
-                                          e == 'TODOS'
-                                              ? 'Todos'
-                                              : formatEnumLabel(e),
-                                        ),
-                                      ),
-                                    )
-                                    .toList(),
-                                onChanged: (value) {
-                                  if (value == null) return;
-                                  setState(() {
-                                    _estadoFiltro = value;
-                                  });
-                                },
-                              ),
+                        Expanded(
+                          child: DropdownButtonFormField<String>(
+                            decoration: const InputDecoration(
+                              labelText: 'Estado',
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: DropdownButtonFormField<String>(
-                                decoration: const InputDecoration(
-                                  labelText: 'Prioridad',
-                                ),
-                                initialValue: _prioridadFiltro,
-                                items: _prioridadesFiltro
-                                    .map(
-                                      (e) => DropdownMenuItem(
-                                        value: e,
-                                        child: Text(
-                                          e == 'TODAS'
-                                              ? 'Todas'
-                                              : formatEnumLabel(e),
-                                        ),
-                                      ),
-                                    )
-                                    .toList(),
-                                onChanged: (value) {
-                                  if (value == null) return;
-                                  setState(() {
-                                    _prioridadFiltro = value;
-                                  });
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        TextField(
-                          decoration: const InputDecoration(
-                            labelText: 'Filtrar por unidad (ej: 3B)',
-                            isDense: true,
-                            border: OutlineInputBorder(),
+                            initialValue: _estadoFiltro,
+                            items: _estadosFiltro
+                                .map(
+                                  (e) => DropdownMenuItem(
+                                    value: e,
+                                    child: Text(
+                                      e == 'TODOS'
+                                          ? 'Todos'
+                                          : formatEnumLabel(e),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (value) {
+                              if (value == null) return;
+                              setState(() {
+                                _estadoFiltro = value;
+                              });
+                            },
                           ),
-                          onChanged: (value) {
-                            setState(() {
-                              _unidadFiltroTexto = value;
-                            });
-                          },
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: DropdownButtonFormField<String>(
+                            decoration: const InputDecoration(
+                              labelText: 'Prioridad',
+                            ),
+                            initialValue: _prioridadFiltro,
+                            items: _prioridadesFiltro
+                                .map(
+                                  (e) => DropdownMenuItem(
+                                    value: e,
+                                    child: Text(
+                                      e == 'TODAS'
+                                          ? 'Todas'
+                                          : formatEnumLabel(e),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (value) {
+                              if (value == null) return;
+                              setState(() {
+                                _prioridadFiltro = value;
+                              });
+                            },
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                  const Divider(height: 1),
-                  Expanded(
-                    child: _reclamosFiltrados.isEmpty
-                        ? Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Text(
-                                'No hay reclamos para el consorcio con los filtros actuales.',
-                                textAlign: TextAlign.center,
-                                style: theme.textTheme.bodyMedium,
-                              ),
-                            ),
-                          )
-                        : ListView.builder(
-                            itemCount: _reclamosFiltrados.length,
-                            itemBuilder: (context, index) {
-                              final r = _reclamosFiltrados[index];
-                              final unidadCodigo =
-                                  (r['unidad']?['codigo'] ?? '').toString();
-                              final creadorNombre =
-                                  (r['usuario']?['nombre'] ?? '').toString();
-                              final creadorEmail =
-                                  (r['usuario']?['email'] ?? '').toString();
-                              final creadorLabel = creadorNombre.isNotEmpty
-                                  ? creadorNombre
-                                  : creadorEmail;
-                              final fechaStr =
-                                  formatShortDateFromIso(r['fecha_creacion']);
-                              final estado =
-                                  (r['estado'] ?? '').toString();
-                              final prioridad =
-                                  (r['prioridad'] ?? '').toString();
-                              final estadoLabel = formatEnumLabel(estado);
-                              final prioridadLabel =
-                                  formatEnumLabel(prioridad);
+                    const SizedBox(height: 8),
+                    TextField(
+                      decoration: const InputDecoration(
+                        labelText: 'Filtrar por unidad (ej: 3B)',
+                        isDense: true,
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _unidadFiltroTexto = value;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: _reclamosFiltrados.isEmpty
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Text(
+                            'No hay reclamos para el consorcio con los filtros actuales.',
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodyMedium,
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: _reclamosFiltrados.length,
+                        itemBuilder: (context, index) {
+                          final r = _reclamosFiltrados[index];
+                          final unidadCodigo = (r['unidad']?['codigo'] ?? '')
+                              .toString();
+                          final creadorNombre = (r['usuario']?['nombre'] ?? '')
+                              .toString();
+                          final creadorEmail = (r['usuario']?['email'] ?? '')
+                              .toString();
+                          final creadorLabel = creadorNombre.isNotEmpty
+                              ? creadorNombre
+                              : creadorEmail;
+                          final fechaStr = formatShortDateFromIso(
+                            r['fecha_creacion'],
+                          );
+                          final estado = (r['estado'] ?? '').toString();
+                          final prioridad = (r['prioridad'] ?? '').toString();
+                          final estadoLabel = formatEnumLabel(estado);
+                          final prioridadLabel = formatEnumLabel(prioridad);
 
-                              return Card(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
+                          return Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            child: ListTile(
+                              onTap: () => _openDetalle(r),
+                              title: Text(
+                                r['titulo']?.toString() ?? '(Sin titulo)',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
                                 ),
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                child: ListTile(
-                                  onTap: () => _openDetalle(r),
-                                  title: Text(
-                                    r['titulo']?.toString() ?? '(Sin titulo)',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  subtitle: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Unidad $unidadCodigo - $creadorLabel'),
+                                  const SizedBox(height: 4),
+                                  Row(
                                     children: [
-                                      Text(
-                                        'Unidad $unidadCodigo - $creadorLabel',
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          Container(
-                                            padding:
-                                                const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 2,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: _estadoColor(estado)
-                                                  .withValues(alpha: 0.15),
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                            ),
-                                            child: Text(
-                                              estadoLabel,
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: _estadoColor(estado),
-                                              ),
-                                            ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: _estadoColor(
+                                            estado,
+                                          ).withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
                                           ),
-                                          const SizedBox(width: 8),
-                                          Container(
-                                            padding:
-                                                const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 2,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: _prioridadColor(prioridad)
-                                                  .withValues(alpha: 0.15),
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                            ),
-                                            child: Text(
-                                              'Prioridad: $prioridadLabel',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: _prioridadColor(
-                                                    prioridad),
-                                              ),
-                                            ),
+                                        ),
+                                        child: Text(
+                                          estadoLabel,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: _estadoColor(estado),
                                           ),
-                                        ],
+                                        ),
                                       ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Fecha: $fechaStr',
-                                        style: theme.textTheme.bodySmall,
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: _prioridadColor(
+                                            prioridad,
+                                          ).withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          'Prioridad: $prioridadLabel',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: _prioridadColor(prioridad),
+                                          ),
+                                        ),
                                       ),
                                     ],
                                   ),
-                                  trailing:
-                                      const Icon(Icons.chevron_right),
-                                ),
-                              );
-                            },
-                          ),
-                  ),
-                ],
-              );
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Fecha: $fechaStr',
+                                    style: theme.textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
+                              trailing: const Icon(Icons.chevron_right),
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          );
   }
 
   @override

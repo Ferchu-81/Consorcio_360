@@ -6,10 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class ReclamoAdjuntosScreen extends StatefulWidget {
   final String reclamoId;
 
-  const ReclamoAdjuntosScreen({
-    super.key,
-    required this.reclamoId,
-  });
+  const ReclamoAdjuntosScreen({super.key, required this.reclamoId});
 
   @override
   State<ReclamoAdjuntosScreen> createState() => _ReclamoAdjuntosScreenState();
@@ -241,58 +238,60 @@ class _ReclamoAdjuntosScreenState extends State<ReclamoAdjuntosScreen> {
                       color: Colors.green.shade800,
                     ),
                   );
-                        }
+                }
 
-                        return ListTile(
-                          leading: leading,
-                          title: Text(
-                            nombre,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                return ListTile(
+                  leading: leading,
+                  title: Text(
+                    nombre,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(fecha),
+                  onTap: () async {
+                    final path = _resolveFilePath(a);
+                    if (path.isEmpty) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'No se encontró la ruta del archivo.',
+                            ),
                           ),
-                          subtitle: Text(fecha),
-                          onTap: () async {
-                            final path = _resolveFilePath(a);
-                            if (path.isEmpty) {
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                        'No se encontró la ruta del archivo.'),
-                                  ),
-                                );
-                              }
-                              return;
-                            }
-
-                            final mime = _resolveMimeType(a);
-                            final url = await _getSignedUrl(path);
-
-                            if (!context.mounted) return;
-                            if (url == null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                      'No se pudo obtener la URL del archivo.'),
-                                ),
-                              );
-                              return;
-                            }
-
-                            if (!context.mounted) return;
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => AdjuntoViewerScreen(
-                                  adjunto: a,
-                                  url: url,
-                                  mimeType: mime,
-                                ),
-                              ),
-                            );
-                          },
                         );
-                      },
-                    ),
+                      }
+                      return;
+                    }
+
+                    final mime = _resolveMimeType(a);
+                    final url = await _getSignedUrl(path);
+
+                    if (!context.mounted) return;
+                    if (url == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'No se pudo obtener la URL del archivo.',
+                          ),
+                        ),
+                      );
+                      return;
+                    }
+
+                    if (!context.mounted) return;
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => AdjuntoViewerScreen(
+                          adjunto: a,
+                          url: url,
+                          mimeType: mime,
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
     );
   }
 }

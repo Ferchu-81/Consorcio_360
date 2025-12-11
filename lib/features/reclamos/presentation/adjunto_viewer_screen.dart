@@ -30,10 +30,7 @@ class AdjuntoViewerScreen extends StatelessWidget {
     if (lowerMime.startsWith('image/')) {
       body = Center(
         child: InteractiveViewer(
-          child: Image.network(
-            url,
-            fit: BoxFit.contain,
-          ),
+          child: Image.network(url, fit: BoxFit.contain),
         ),
       );
     } else if (lowerMime == 'application/pdf') {
@@ -75,12 +72,7 @@ class AdjuntoViewerScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          nombre,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ),
+      appBar: AppBar(title: Text(nombre, overflow: TextOverflow.ellipsis)),
       body: body,
     );
   }

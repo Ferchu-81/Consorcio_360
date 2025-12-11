@@ -9,9 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:consorcio_360/shared/pdf/pdf_actions.dart';
 
 class ReclamoDetailScreen extends StatefulWidget {
   final String reclamoId;
@@ -733,18 +733,18 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
 
   Future<void> _exportPdf() async {
     final contexto = context.read<CurrentContextNotifier>().current;
-    final unidadCodigo = (_reclamo?['unidad']?['codigo'] ?? '')
-        .toString()
-        .trim();
-    final bytes = await _buildPdfBytes();
-    if (!mounted) return;
-    if (bytes.isEmpty) return;
-
+    final unidadCodigo =
+        (_reclamo?['unidad']?['codigo'] ?? '').toString().trim();
     final safeUnidad = unidadCodigo.isEmpty ? 'sin_unidad' : unidadCodigo;
     final fileName =
         'reclamo_${contexto?.consorcioNombre ?? 'consorcio'}_$safeUnidad.pdf';
 
-    await Printing.sharePdf(bytes: bytes, filename: fileName);
+    await showPdfOptionsBottomSheet(
+      context: context,
+      title: 'Expediente del reclamo',
+      fileName: fileName,
+      buildPdf: (format) => _buildPdfBytes(),
+    );
   }
 
   @override
@@ -823,26 +823,24 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
                     ),
                   const SizedBox(height: 6),
                   Row(
+                    children: [
+                      if (unidadCodigo.isNotEmpty)
+                        Chip(
+                          label: Text('Unidad $unidadCodigo'),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      const SizedBox(width: 6),
+                      Chip(
+                        label: Text('Prioridad: $prioridadLabel'),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Wrap(
-                          spacing: 6,
-                          runSpacing: 4,
-                          children: [
-                            if (unidadCodigo.isNotEmpty)
-                              Chip(
-                                label: Text('Unidad $unidadCodigo'),
-                                visualDensity: VisualDensity.compact,
-                              ),
-                            Chip(
-                              label: Text('Prioridad: $prioridadLabel'),
-                              visualDensity: VisualDensity.compact,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
                       if (esAdmin)
                         Row(
                           mainAxisSize: MainAxisSize.min,
@@ -885,6 +883,17 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
                           label: Text('Estado: $estadoLabel'),
                           visualDensity: VisualDensity.compact,
                         ),
+                      TextButton.icon(
+                        onPressed: _adjuntos.isEmpty
+                            ? null
+                            : _openAdjuntosScreen,
+                        icon: const Icon(Icons.attach_file, size: 18),
+                        label: Text('Adjuntos (${_adjuntos.length})'),
+                        style: TextButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                          padding: EdgeInsets.zero,
+                        ),
+                      ),
                     ],
                   ),
                   if (descripcion.trim().isNotEmpty)
@@ -895,18 +904,6 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
                         style: theme.textTheme.bodyMedium,
                       ),
                     ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton.icon(
-                      onPressed: _adjuntos.isEmpty ? null : _openAdjuntosScreen,
-                      icon: const Icon(Icons.attach_file, size: 18),
-                      label: Text('Adjuntos (${_adjuntos.length})'),
-                      style: TextButton.styleFrom(
-                        visualDensity: VisualDensity.compact,
-                        padding: EdgeInsets.zero,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),

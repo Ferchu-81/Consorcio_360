@@ -8,8 +8,12 @@ import 'reclamo_detail_screen.dart';
 import 'reclamos_utils.dart';
 
 /// Tab de Reclamos (lista + botón "Nuevo reclamo")
+import 'package:consorcio_360/data/models/usuario_contexto.dart';
+
 class ReclamosTab extends StatefulWidget {
-  const ReclamosTab({super.key});
+  final UsuarioContexto? contexto;
+
+  const ReclamosTab({super.key, this.contexto});
 
   @override
   State<ReclamosTab> createState() => _ReclamosTabState();
@@ -26,7 +30,8 @@ class _ReclamosTabState extends State<ReclamosTab> {
 
   Future<List<Map<String, dynamic>>> _loadReclamos() async {
     final supabase = Supabase.instance.client;
-    final contexto = context.read<CurrentContextNotifier>().current;
+    final contexto =
+        widget.contexto ?? context.read<CurrentContextNotifier>().current;
 
     if (contexto == null) {
       throw Exception('No hay contexto seleccionado.');
@@ -165,8 +170,9 @@ class _ReclamosTabState extends State<ReclamosTab> {
                   itemCount: reclamos.length,
                   itemBuilder: (context, index) {
                     final r = reclamos[index];
-                    final fechaStr =
-                        formatShortDateFromIso(r['fecha_creacion']);
+                    final fechaStr = formatShortDateFromIso(
+                      r['fecha_creacion'],
+                    );
                     final estado = (r['estado'] ?? '').toString();
                     final prioridad = (r['prioridad'] ?? '').toString();
                     final estadoLabel = formatEnumLabel(estado);
