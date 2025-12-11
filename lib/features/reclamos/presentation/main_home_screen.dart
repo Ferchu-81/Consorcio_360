@@ -44,9 +44,9 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
 
     _tabs = [
       DashboardTab(nombre: nombre, rolDescripcion: rolDesc),
-      const ReclamosTab(),
-      const ExpensasTab(),
-      const PagosTab(),
+      ReclamosTab(contexto: widget.contexto),
+      ExpensasTab(contexto: widget.contexto),
+      PagosTab(contexto: widget.contexto),
     ];
   }
 

@@ -91,6 +91,82 @@ class ExpensasRepository {
     return list.map(PagoExpensa.fromMap).toList();
   }
 
+  // PAGOS - MORADOR: pagos de una unidad específica
+  Future<List<PagoExpensa>> fetchPagosMorador({
+    required String unidadId,
+  }) async {
+    final data = await _client
+        .from('pagos_expensa')
+        .select('''
+          id,
+          expensa_id,
+          consorcio_id,
+          unidad_id,
+          fecha_pago,
+          importe,
+          medio_pago,
+          estado_pago,
+          ref_mp,
+          observaciones,
+          created_at,
+          expensas (
+            periodo,
+            estado,
+            fecha_venc,
+            importe_total,
+            moneda
+          )
+        ''')
+        .eq('unidad_id', unidadId)
+        .order('fecha_pago', ascending: false);
+
+    final list = (data as List)
+        .map((row) => PagoExpensa.fromMap(row as Map<String, dynamic>))
+        .toList();
+
+    return list;
+  }
+
+  // PAGOS - ADMIN: todos los pagos del consorcio (opcional filtrar por unidad)
+  Future<List<PagoExpensa>> fetchPagosAdmin({
+    required String consorcioId,
+    String? unidadId,
+  }) async {
+    var query = _client.from('pagos_expensa').select('''
+          id,
+          expensa_id,
+          consorcio_id,
+          unidad_id,
+          fecha_pago,
+          importe,
+          medio_pago,
+          estado_pago,
+          ref_mp,
+          observaciones,
+          created_at,
+          expensas (
+            periodo,
+            estado,
+            fecha_venc,
+            importe_total,
+            moneda
+          )
+        ''').eq('consorcio_id', consorcioId);
+
+    // Si se pasa una unidad, filtramos; si no, traemos todas
+    if (unidadId != null) {
+      query = query.eq('unidad_id', unidadId);
+    }
+
+    final data = await query.order('fecha_pago', ascending: false);
+
+    final list = (data as List)
+        .map((row) => PagoExpensa.fromMap(row as Map<String, dynamic>))
+        .toList();
+
+    return list;
+  }
+
   /// Listado para administradores: expensas filtradas por consorcio/unidad/estado/rango.
   Future<List<Expensa>> fetchExpensasAdmin({
     required String consorcioId,

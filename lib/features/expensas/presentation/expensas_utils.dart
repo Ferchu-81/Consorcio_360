@@ -66,3 +66,32 @@ Color estadoColor(String estado) {
       return Colors.grey;
   }
 }
+
+Color estadoPagoColor(String estado) {
+  switch (estado) {
+    case 'APROBADO':
+      return Colors.green.shade700;
+    case 'PENDIENTE':
+      return Colors.orange.shade700;
+    case 'RECHAZADO':
+    case 'CANCELADO':
+      return Colors.red.shade700;
+    default:
+      return Colors.grey.shade700;
+  }
+}
+
+String formatEstadoPago(String estado) {
+  switch (estado) {
+    case 'APROBADO':
+      return 'Aprobado';
+    case 'PENDIENTE':
+      return 'Pendiente';
+    case 'RECHAZADO':
+      return 'Rechazado';
+    case 'CANCELADO':
+      return 'Cancelado';
+    default:
+      return estado;
+  }
+}

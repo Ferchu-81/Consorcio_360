@@ -1,159 +1,182 @@
-import 'package:consorcio_360/core/state/current_context_notifier.dart';
-import 'package:consorcio_360/data/models/usuario_contexto.dart';
+import 'package:flutter/material.dart';
+
 import 'package:consorcio_360/data/models/pago_expensa.dart';
+import 'package:consorcio_360/data/models/usuario_contexto.dart';
 import 'package:consorcio_360/data/repositories/expensas_repository.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensas_utils.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-/// Historial de pagos de expensas para la unidad actual.
 class PagosTab extends StatefulWidget {
-  final UsuarioContexto? contexto;
+  final UsuarioContexto contexto;
 
-  const PagosTab({super.key, this.contexto});
+  const PagosTab({
+    super.key,
+    required this.contexto,
+  });
 
   @override
   State<PagosTab> createState() => _PagosTabState();
 }
 
 class _PagosTabState extends State<PagosTab> {
-  final ExpensasRepository _repository = ExpensasRepository();
+  final _repo = ExpensasRepository();
   late Future<List<PagoExpensa>> _futurePagos;
+  Map<String, String> _unidadCodigoPorId = {};
 
   @override
   void initState() {
     super.initState();
+    _cargarCodigosUnidades();
     _futurePagos = _loadPagos();
   }
 
-  Future<List<PagoExpensa>> _loadPagos() async {
-    final contexto =
-        widget.contexto ?? context.read<CurrentContextNotifier>().current;
-    if (contexto == null) {
-      throw Exception('No hay contexto seleccionado.');
+  Future<void> _cargarCodigosUnidades() async {
+    if (widget.contexto.rol != 'ADMIN_CONSORCIO') return;
+    final unidades =
+        await _repo.fetchUnidadesDeConsorcio(widget.contexto.consorcioId);
+    if (!mounted) return;
+    setState(() {
+      _unidadCodigoPorId = {
+        for (final u in unidades)
+          if (u['id'] != null && u['codigo'] != null)
+            u['id'].toString(): u['codigo'].toString(),
+      };
+    });
+  }
+
+  Future<List<PagoExpensa>> _loadPagos() {
+    final ctx = widget.contexto;
+    final rol = ctx.rol;
+
+    if (rol == 'ADMIN_CONSORCIO') {
+      // ADMIN: ve todos los pagos del consorcio actual.
+      // Si la unidad del contexto es GLOBAL, no filtramos por unidad.
+      return _repo.fetchPagosAdmin(
+        consorcioId: ctx.consorcioId,
+        unidadId: ctx.unidadCodigo == 'GLOBAL' ? null : ctx.unidadId,
+      );
     }
-    return _repository.fetchPagosDeUnidad(contexto.unidadId);
+
+    // MORADOR / PROPIETARIO: solo pagos de su unidad
+    return _repo.fetchPagosMorador(unidadId: ctx.unidadId);
   }
 
   Future<void> _refresh() async {
+    await _cargarCodigosUnidades();
     setState(() {
       _futurePagos = _loadPagos();
     });
-    await _futurePagos;
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: RefreshIndicator(
-        onRefresh: _refresh,
-        child: FutureBuilder<List<PagoExpensa>>(
-          future: _futurePagos,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
+    return RefreshIndicator(
+      onRefresh: _refresh,
+      child: FutureBuilder<List<PagoExpensa>>(
+        future: _futurePagos,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-            if (snapshot.hasError) {
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: [
-                  const SizedBox(height: 80),
-                  Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Error al cargar pagos: ${snapshot.error}',
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 12),
-                        FilledButton.icon(
-                          onPressed: _refresh,
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Reintentar'),
-                        ),
-                      ],
-                    ),
+          if (snapshot.hasError) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                const SizedBox(height: 80),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'Error al cargar pagos: ${snapshot.error}',
+                    textAlign: TextAlign.center,
                   ),
-                ],
-              );
-            }
+                ),
+              ],
+            );
+          }
 
-            final pagos = snapshot.data ?? [];
+          final pagos = snapshot.data ?? [];
 
-            if (pagos.isEmpty) {
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: [
-                  const SizedBox(height: 80),
-                  Center(
+          if (pagos.isEmpty) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: const [
+                SizedBox(height: 80),
+                Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
                     child: Text(
                       'No hay pagos registrados para esta unidad.',
-                      style: theme.textTheme.bodyMedium,
                       textAlign: TextAlign.center,
                     ),
                   ),
-                ],
-              );
-            }
-
-            return ListView.builder(
-              physics: const AlwaysScrollableScrollPhysics(),
-              itemCount: pagos.length,
-              itemBuilder: (context, index) {
-                final pago = pagos[index];
-                final estadoLabel = formatEstado(pago.estadoPago);
-                final color = estadoColor(
-                  pago.estadoPago == 'APROBADO' ? 'PAGADA' : pago.estadoPago,
-                );
-
-                final periodoLabel = pago.periodoExpensa != null
-                    ? formatPeriodo(pago.periodoExpensa!)
-                    : 'Expensa ${pago.expensaId.substring(0, 8)}...';
-
-                return Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: ListTile(
-                    title: Text(
-                      formatImporte(pago.importe, pago.monedaExpensa ?? 'ARS'),
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Fecha: ${formatFechaCorta(pago.fechaPago)}'),
-                        Text('Medio: ${formatEstado(pago.medioPago)}'),
-                        Text('Periodo: $periodoLabel'),
-                        if (pago.expensaImporteTotal != null)
-                          Text(
-                            'Importe expensa: ${formatImporte(pago.expensaImporteTotal!, pago.monedaExpensa ?? 'ARS')}',
-                          ),
-                        if ((pago.observaciones ?? '').isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 2),
-                            child: Text('Obs: ${pago.observaciones}'),
-                          ),
-                      ],
-                    ),
-                    trailing: Chip(
-                      label: Text(estadoLabel),
-                      visualDensity: VisualDensity.compact,
-                      backgroundColor: color.withValues(alpha: 0.12),
-                      labelStyle: TextStyle(color: color),
-                    ),
-                  ),
-                );
-              },
+                ),
+              ],
             );
-          },
-        ),
+          }
+
+          return ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            itemCount: pagos.length,
+            itemBuilder: (context, index) {
+              final p = pagos[index];
+              final esAdmin = widget.contexto.rol == 'ADMIN_CONSORCIO';
+
+              // Mostrar código legible; para admin intentamos mapear id->código.
+              final unidadLabel = esAdmin
+                  ? (_unidadCodigoPorId[p.unidadId] ?? p.unidadId)
+                  : widget.contexto.unidadCodigo;
+
+              final periodoLabel = p.periodoExpensa != null
+                  ? formatPeriodo(p.periodoExpensa!)
+                  : '';
+              final color = estadoPagoColor(p.estadoPago);
+              final estadoLabel = formatEstadoPago(p.estadoPago);
+              final medioLabel = formatEstado(p.medioPago);
+
+              return Card(
+                margin: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: ListTile(
+                  leading: const Icon(Icons.receipt_long_outlined),
+                  title: Text(
+                    'Unidad $unidadLabel • $periodoLabel',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text(
+                    'Fecha: ${formatFechaCorta(p.fechaPago)}\n'
+                    'Medio: $medioLabel',
+                  ),
+                  trailing: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        formatImporte(
+                          p.importe,
+                          p.monedaExpensa ?? 'ARS',
+                        ),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Chip(
+                        label: Text(estadoLabel),
+                        visualDensity: VisualDensity.compact,
+                        backgroundColor: color.withValues(alpha: 0.12),
+                        labelStyle: TextStyle(color: color),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
