@@ -4,7 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Operaciones de datos para expensas y pagos asociados.
 class ExpensasRepository {
-  SupabaseClient get _client => Supabase.instance.client;
+  final SupabaseClient _client = Supabase.instance.client;
 
   /// Obtiene las expensas de una unidad ordenadas por periodo descendente.
   Future<List<Expensa>> fetchExpensasDeUnidad(String unidadId) async {
@@ -282,54 +282,61 @@ class ExpensasRepository {
         .eq('id', expensaId);
   }
 
-  /// Crea una expensa manual (MVP admin).
-  Future<void> crearExpensa({
+  /// Crea una expensa para una unidad.
+  Future<void> crearExpensaUnidad({
     required String consorcioId,
     required String unidadId,
     required DateTime periodo,
     required double importeTotal,
     required DateTime fechaVenc,
+    String moneda = 'ARS',
   }) async {
     await _client.from('expensas').insert({
       'consorcio_id': consorcioId,
       'unidad_id': unidadId,
       'periodo': DateTime(periodo.year, periodo.month, 1).toIso8601String(),
       'importe_total': importeTotal,
-      'estado': 'PENDIENTE',
-      'fecha_venc': fechaVenc.toIso8601String(),
+      'fecha_venc':
+          DateTime(fechaVenc.year, fechaVenc.month, fechaVenc.day).toIso8601String(),
+      'moneda': moneda,
     });
   }
 
-  /// Crea una expensa para cada unidad del consorcio (caso GLOBAL).
-  Future<void> crearExpensasGlobales({
+  /// Expensa GLOBAL: genera una expensa por cada unidad del consorcio.
+  /// No crea una fila con unidad "GLOBAL".
+  Future<void> crearExpensasGlobal({
     required String consorcioId,
     required DateTime periodo,
     required double importeTotal,
     required DateTime fechaVenc,
+    String moneda = 'ARS',
   }) async {
-    final res = await _client
+    final data = await _client
         .from('unidades')
         .select('id')
         .eq('consorcio_id', consorcioId);
 
-    final unidades = List<Map<String, dynamic>>.from(res as List);
+    final unidades = (data as List)
+        .map((row) => row['id'] as String)
+        .toList();
 
     if (unidades.isEmpty) return;
 
-    final data = unidades
-        .map(
-          (u) => {
-            'consorcio_id': consorcioId,
-            'unidad_id': u['id'] as String,
-            'periodo':
-                DateTime(periodo.year, periodo.month, 1).toIso8601String(),
-            'importe_total': importeTotal,
-            'estado': 'PENDIENTE',
-            'fecha_venc': fechaVenc.toIso8601String(),
-          },
-        )
-        .toList();
+    final rows = unidades.map((unidadId) {
+      return {
+        'consorcio_id': consorcioId,
+        'unidad_id': unidadId,
+        'periodo': DateTime(periodo.year, periodo.month, 1).toIso8601String(),
+        'importe_total': importeTotal,
+        'fecha_venc': DateTime(
+          fechaVenc.year,
+          fechaVenc.month,
+          fechaVenc.day,
+        ).toIso8601String(),
+        'moneda': moneda,
+      };
+    }).toList();
 
-    await _client.from('expensas').insert(data);
+    await _client.from('expensas').insert(rows);
   }
 }

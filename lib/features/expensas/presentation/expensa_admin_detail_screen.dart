@@ -1,12 +1,10 @@
-import 'dart:typed_data';
-
 import 'package:consorcio_360/data/models/expensa.dart';
 import 'package:consorcio_360/data/models/pago_expensa.dart';
 import 'package:consorcio_360/data/repositories/expensas_repository.dart';
-import 'package:consorcio_360/features/expensas/presentation/expensa_pdf_service.dart';
+import 'package:consorcio_360/features/expensas/presentation/expensa_pdf_generator.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensas_utils.dart';
+import 'package:consorcio_360/shared/pdf/pdf_actions.dart';
 import 'package:flutter/material.dart';
-import 'package:printing/printing.dart';
 
 /// Detalle exclusivo para administrador, con cambio de estado.
 class ExpensaAdminDetailScreen extends StatefulWidget {
@@ -80,75 +78,24 @@ class _ExpensaAdminDetailScreenState extends State<ExpensaAdminDetailScreen> {
     }
   }
 
-  Future<Uint8List> _buildComprobanteBytes(PagoExpensa pago) {
+  Future<void> _mostrarOpcionesComprobante(PagoExpensa pago) async {
     final consorcioNombre = widget.consorcioNombre ?? widget.consorcioId;
     final unidadCodigo = widget.unidadCodigo ?? _expensaActual.unidadId;
-    const moradorNombre = ''; // No almacenado por ahora.
+    const consorcioCuit = ''; // no disponible en esta pantalla
 
-    return ExpensaPdfService.buildComprobantePago(
-      expensa: _expensaActual,
-      pago: pago,
-      consorcioNombre: consorcioNombre,
-      unidadCodigo: unidadCodigo,
-      moradorNombre: moradorNombre,
-    );
-  }
-
-  void _mostrarOpcionesComprobante(PagoExpensa pago) {
-    showModalBottomSheet(
+    await showPdfOptionsBottomSheet(
       context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.print),
-              title: const Text('Ver / imprimir comprobante'),
-              onTap: () async {
-                Navigator.of(context).pop();
-                await _verComprobante(pago);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.share),
-              title: const Text('Compartir comprobante'),
-              onTap: () async {
-                Navigator.of(context).pop();
-                await _compartirComprobante(pago);
-              },
-            ),
-          ],
-        ),
+      title: 'Comprobante de expensa',
+      fileName:
+          'comprobante_expensa_${unidadCodigo}_${_expensaActual.periodo.toIso8601String()}.pdf',
+      buildPdf: (format) => buildExpensaFacturaPdfA4(
+        expensa: _expensaActual,
+        consorcioNombre: consorcioNombre,
+        consorcioCuit: consorcioCuit,
+        unidadCodigo: unidadCodigo,
+        pago: pago,
       ),
     );
-  }
-
-  Future<void> _verComprobante(PagoExpensa pago) async {
-    try {
-      final bytes = await _buildComprobanteBytes(pago);
-      await Printing.layoutPdf(onLayout: (_) async => bytes);
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al generar comprobante: $e')),
-      );
-    }
-  }
-
-  Future<void> _compartirComprobante(PagoExpensa pago) async {
-    try {
-      final bytes = await _buildComprobanteBytes(pago);
-      await Printing.sharePdf(
-        bytes: bytes,
-        filename:
-            'comprobante-expensa-${_expensaActual.periodo.toIso8601String()}.pdf',
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al compartir comprobante: $e')),
-      );
-    }
   }
 
   Future<void> _confirmarAnulacion() async {

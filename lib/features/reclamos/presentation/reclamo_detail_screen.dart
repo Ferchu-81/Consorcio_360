@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:consorcio_360/core/state/current_context_notifier.dart';
-import 'package:consorcio_360/core/widgets/pdf_action_sheet.dart';
 import 'package:consorcio_360/data/models/usuario_contexto.dart';
 import 'package:consorcio_360/features/reclamos/presentation/reclamo_adjuntos_screen.dart';
 import 'package:consorcio_360/features/reclamos/presentation/reclamos_utils.dart';
@@ -12,6 +11,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:consorcio_360/shared/pdf/pdf_actions.dart';
 
 class ReclamoDetailScreen extends StatefulWidget {
   final String reclamoId;
@@ -737,12 +737,13 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
         (_reclamo?['unidad']?['codigo'] ?? '').toString().trim();
     final safeUnidad = unidadCodigo.isEmpty ? 'sin_unidad' : unidadCodigo;
     final fileName =
-        'reclamo_${contexto?.consorcioNombre ?? 'consorcio'}_$safeUnidad';
+        'reclamo_${contexto?.consorcioNombre ?? 'consorcio'}_$safeUnidad.pdf';
 
-    await showPdfActionSheet(
+    await showPdfOptionsBottomSheet(
       context: context,
-      filenameBase: fileName,
-      buildPdfBytes: _buildPdfBytes,
+      title: 'Expediente del reclamo',
+      fileName: fileName,
+      buildPdf: (format) => _buildPdfBytes(),
     );
   }
 

@@ -1,11 +1,10 @@
-﻿import 'dart:typed_data';
 import 'package:consorcio_360/core/state/current_context_notifier.dart';
-import 'package:consorcio_360/core/services/expensa_pdf_service.dart';
-import 'package:consorcio_360/core/widgets/pdf_action_sheet.dart';
 import 'package:consorcio_360/data/models/expensa.dart';
 import 'package:consorcio_360/data/models/pago_expensa.dart';
 import 'package:consorcio_360/data/repositories/expensas_repository.dart';
+import 'package:consorcio_360/features/expensas/presentation/expensa_pdf_generator.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensas_utils.dart';
+import 'package:consorcio_360/shared/pdf/pdf_actions.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -71,9 +70,7 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
   bool get _puedeMarcarDemo {
     final contexto = context.read<CurrentContextNotifier>().current;
     final esAdmin = contexto?.rol == 'ADMIN_CONSORCIO';
-    return kDemoPagosHabilitado &&
-        !esAdmin &&
-        _expensa.estado == 'PENDIENTE';
+    return kDemoPagosHabilitado && !esAdmin && _expensa.estado == 'PENDIENTE';
   }
 
   Future<void> _pagoManualDemo() async {
@@ -108,27 +105,6 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
     }
   }
 
-  Future<Uint8List> _buildComprobanteExpensaBytes() {
-    final contexto = context.read<CurrentContextNotifier>().current;
-    final consorcioNombre =
-        contexto?.consorcioNombre ?? _expensa.consorcioId;
-    final unidadCodigo = contexto?.unidadCodigo ?? _expensa.unidadId;
-    final moradorNombre = contexto?.nombre ?? '';
-    final pago = _pagos.isNotEmpty ? _pagos.first : null;
-
-    if (pago == null) {
-      throw StateError('No hay pagos registrados para generar comprobante.');
-    }
-
-    return ExpensaPdfService.buildComprobante(
-      expensa: _expensa,
-      consorcioNombre: consorcioNombre,
-      unidadCodigo: unidadCodigo,
-      moradorNombre: moradorNombre,
-      pago: pago,
-    );
-  }
-
   void _mostrarOpcionesComprobanteExpensa() {
     if (_pagos.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -138,28 +114,45 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
       );
       return;
     }
-    showPdfActionSheet(
+
+    final contexto = context.read<CurrentContextNotifier>().current;
+    final consorcioNombre = contexto?.consorcioNombre ?? _expensa.consorcioId;
+    final unidadCodigo = contexto?.unidadCodigo ?? _expensa.unidadId;
+    final consorcioCuit = ''; // no disponible aquí
+    final pago = _pagos.first;
+
+    showPdfOptionsBottomSheet(
       context: context,
-      filenameBase: 'comprobante-expensa-${_expensa.periodo.toIso8601String()}',
-      buildPdfBytes: _buildComprobanteExpensaBytes,
+      title: 'Comprobante de expensa',
+      fileName:
+          'comprobante_expensa_${unidadCodigo}_${_expensa.periodo.toIso8601String()}.pdf',
+      buildPdf: (format) => buildExpensaFacturaPdfA4(
+        expensa: _expensa,
+        consorcioNombre: consorcioNombre,
+        consorcioCuit: consorcioCuit,
+        unidadCodigo: unidadCodigo,
+        pago: pago,
+      ),
     );
   }
 
   Future<void> _generarBoletaPdf() async {
     final contexto = context.read<CurrentContextNotifier>().current;
-    final consorcioNombre =
-        contexto?.consorcioNombre ?? _expensa.consorcioId;
+    final consorcioNombre = contexto?.consorcioNombre ?? _expensa.consorcioId;
     final unidadCodigo = contexto?.unidadCodigo ?? _expensa.unidadId;
-    const moradorNombre = '';
+    final consorcioCuit = '';
 
-    await showPdfActionSheet(
+    await showPdfOptionsBottomSheet(
       context: context,
-      filenameBase: 'boleta-expensa-${_expensa.periodo.toIso8601String()}',
-      buildPdfBytes: () => ExpensaPdfService.buildBoletaExpensa(
+      title: 'Boleta de expensas',
+      fileName:
+          'boleta_expensa_${unidadCodigo}_${_expensa.periodo.toIso8601String()}.pdf',
+      buildPdf: (format) => buildExpensaFacturaPdfA4(
         expensa: _expensa,
         consorcioNombre: consorcioNombre,
+        consorcioCuit: consorcioCuit,
         unidadCodigo: unidadCodigo,
-        moradorNombre: moradorNombre,
+        pago: null,
       ),
     );
   }
@@ -214,7 +207,7 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
     final estadoLabel = formatEstado(expensa.estado);
     final unidadLabel =
         context.watch<CurrentContextNotifier>().current?.unidadCodigo ??
-        expensa.unidadId;
+            expensa.unidadId;
     final estaPagada = expensa.estado == 'PAGADA';
 
     if (_loading) {
@@ -394,6 +387,3 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
     );
   }
 }
-
-
-

@@ -40,7 +40,7 @@ dependencies:
   image_picker: ^1.1.2
   file_picker: ^10.3.7
   url_launcher: ^6.3.2
-  pdf: ^3.10.7
+  pdf: ^3.11.0
   printing: ^5.13.1
   syncfusion_flutter_pdfviewer: any
   fl_chart: ^0.70.0

@@ -34,7 +34,10 @@ class _NuevaExpensaScreenState extends State<NuevaExpensaScreen> {
       final data = await _repo.fetchUnidadesDeConsorcio(widget.consorcioId);
       if (!mounted) return;
       setState(() {
-        _unidades = data;
+        _unidades = data
+            .where((u) =>
+                (u['codigo'] ?? '').toString().toUpperCase() != 'GLOBAL')
+            .toList();
         _cargandoUnidades = false;
       });
     } catch (_) {
@@ -80,7 +83,7 @@ class _NuevaExpensaScreenState extends State<NuevaExpensaScreen> {
     if (!_formKey.currentState!.validate()) return;
     if (_unidadSeleccionada == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Seleccioná una unidad o GLOBAL')),
+        const SnackBar(content: Text('Selecciona una unidad o GLOBAL')),
       );
       return;
     }
@@ -99,14 +102,14 @@ class _NuevaExpensaScreenState extends State<NuevaExpensaScreen> {
 
     try {
       if (_unidadSeleccionada == 'GLOBAL') {
-        await _repo.crearExpensasGlobales(
+        await _repo.crearExpensasGlobal(
           consorcioId: widget.consorcioId,
           periodo: _periodo,
           importeTotal: importe,
           fechaVenc: _fechaVenc,
         );
       } else {
-        await _repo.crearExpensa(
+        await _repo.crearExpensaUnidad(
           consorcioId: widget.consorcioId,
           unidadId: _unidadSeleccionada!,
           periodo: _periodo,
