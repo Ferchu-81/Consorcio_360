@@ -4,9 +4,12 @@ import 'package:consorcio_360/data/models/pago_expensa.dart';
 import 'package:consorcio_360/data/repositories/expensas_repository.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensa_pdf_generator.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensas_utils.dart';
+import 'package:consorcio_360/pagos/data/mercado_pago_client.dart';
 import 'package:consorcio_360/shared/pdf/pdf_actions.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 const bool kDemoPagosHabilitado = true;
 
@@ -22,12 +25,16 @@ class ExpensaDetailScreen extends StatefulWidget {
 
 class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
   final ExpensasRepository _repository = ExpensasRepository();
+  final MercadoPagoClient _mpClient = MercadoPagoClient();
+  final SupabaseClient _supabase = Supabase.instance.client;
 
   late Expensa _expensa;
   List<PagoExpensa> _pagos = [];
   bool _loading = true;
   String? _error;
   bool _pagando = false;
+  bool _verificandoPagoMp = false;
+  String? _pagoIdMpLocal; // id en pagos_expensa usado como external_reference
 
   @override
   void initState() {
@@ -45,13 +52,14 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
     try {
       final expensaActualizada =
           await _repository.fetchExpensaPorId(widget.expensa.id) ??
-          widget.expensa;
+              widget.expensa;
       final pagos = await _repository.fetchPagosDeExpensa(widget.expensa.id);
 
       if (!mounted) return;
       setState(() {
         _expensa = expensaActualizada;
         _pagos = pagos;
+        _pagoIdMpLocal = _buscarPagoMpPendiente(pagos);
       });
     } catch (e) {
       if (!mounted) return;
@@ -118,7 +126,7 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
     final contexto = context.read<CurrentContextNotifier>().current;
     final consorcioNombre = contexto?.consorcioNombre ?? _expensa.consorcioId;
     final unidadCodigo = contexto?.unidadCodigo ?? _expensa.unidadId;
-    final consorcioCuit = ''; // no disponible aquí
+    final consorcioCuit = ''; // no disponible aqui
     final pago = _pagos.first;
 
     showPdfOptionsBottomSheet(
@@ -173,17 +181,11 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.qr_code),
-              title: const Text('Pagar con pasarela (próximamente)'),
-              onTap: () {
+              leading: const Icon(Icons.payment),
+              title: const Text('Pagar con Mercado Pago (modo prueba)'),
+              onTap: () async {
                 Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'La integración con la pasarela de pago se implementará en la siguiente etapa.',
-                    ),
-                  ),
-                );
+                await _iniciarPagoMercadoPago();
               },
             ),
             ListTile(
@@ -198,6 +200,118 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
         ),
       ),
     );
+  }
+
+  String? _buscarPagoMpPendiente(List<PagoExpensa> pagos) {
+    for (final p in pagos) {
+      if (p.medioPago == 'MERCADO_PAGO' && p.estadoPago != 'APROBADO') {
+        return p.id;
+      }
+    }
+    return null;
+  }
+
+  Future<void> _iniciarPagoMercadoPago() async {
+    setState(() {
+      _pagando = true;
+    });
+
+    try {
+      final expensa = _expensa;
+
+      final insertRes = await _supabase
+          .from('pagos_expensa')
+          .insert({
+            'expensa_id': expensa.id,
+            'consorcio_id': expensa.consorcioId,
+            'unidad_id': expensa.unidadId,
+            'importe': expensa.importeTotal,
+            'medio_pago': 'MERCADO_PAGO',
+            'estado_pago': 'PENDIENTE',
+            'observaciones': 'Pago iniciado via Mercado Pago (demo)',
+          })
+          .select('id')
+          .single();
+
+      final pagoId = insertRes['id'] as String;
+      _pagoIdMpLocal = pagoId;
+
+      final pref = await _mpClient.createPreference(
+        externalReference: pagoId,
+        title: 'Expensa ${formatPeriodo(expensa.periodo)}',
+        amount: expensa.importeTotal,
+      );
+
+      final uri = Uri.parse(pref.initPoint);
+      final ok = await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
+      if (!ok && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No se pudo abrir la pantalla de pago')),
+        );
+      }
+
+      await _loadDetalle();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error iniciando pago: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _pagando = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _verificarPagoMercadoPago() async {
+    final pagoId = _pagoIdMpLocal;
+    if (pagoId == null) return;
+
+    setState(() => _verificandoPagoMp = true);
+
+    try {
+      final statusRes =
+          await _mpClient.getPaymentStatusByExternalReference(pagoId);
+
+      await _supabase
+          .from('pagos_expensa')
+          .update({
+            'estado_pago': statusRes.status,
+            'ref_mp': statusRes.paymentId,
+          })
+          .eq('id', pagoId);
+
+      if (statusRes.isApproved) {
+        await _supabase
+            .from('expensas')
+            .update({'estado': 'PAGADA'}).eq('id', _expensa.id);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Pago aprobado y registrado')),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Estado de pago: ${statusRes.status}')),
+          );
+        }
+      }
+
+      await _loadDetalle();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error verificando pago: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _verificandoPagoMp = false);
+    }
   }
 
   @override
@@ -315,7 +429,24 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
               if (_puedeMarcarDemo) ...[
                 const SizedBox(height: 4),
                 const Text(
-                  'Opciones demo habilitadas. La integración con pasarela se agregará después.',
+                  'Modo demo habilitado. Mercado Pago usa sandbox.',
+                ),
+              ],
+              if (_pagoIdMpLocal != null) ...[
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed:
+                        _verificandoPagoMp ? null : _verificarPagoMercadoPago,
+                    child: _verificandoPagoMp
+                        ? const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Verificar pago Mercado Pago'),
+                  ),
                 ),
               ],
             ],

@@ -190,12 +190,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           controller: _passwordController,
                           obscureText: true,
                           decoration: const InputDecoration(
-                            labelText: 'contrasena',
+                        labelText: 'contraseña',
                             prefixIcon: Icon(Icons.lock_outline),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Ingresa tu contrasena';
+                              return 'Ingresa tu contraseña';
                             }
                             if (value.length < 6) {
                               return 'Minimo 6 caracteres';

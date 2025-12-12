@@ -157,12 +157,12 @@ class _SignupScreenState extends State<SignupScreen> {
                       controller: _passwordController,
                       obscureText: true,
                       decoration: const InputDecoration(
-                        labelText: 'contrasena',
+                        labelText: 'contraseña',
                         prefixIcon: Icon(Icons.lock_outline),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Ingresa una contrasena';
+                          return 'Ingresa una contraseña';
                         }
                         if (value.length < 6) {
                           return 'Minimo 6 caracteres';
@@ -175,15 +175,15 @@ class _SignupScreenState extends State<SignupScreen> {
                       controller: _confirmPasswordController,
                       obscureText: true,
                       decoration: const InputDecoration(
-                        labelText: 'Confirma contrasena',
+                        labelText: 'Confirma contraseña',
                         prefixIcon: Icon(Icons.lock_outline),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Confirma la contrasena';
+                          return 'Confirma la contraseña';
                         }
                         if (value != _passwordController.text) {
-                          return 'Las contrasenas no coinciden';
+                          return 'Las contraseñas no coinciden';
                         }
                         return null;
                       },
