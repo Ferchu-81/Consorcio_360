@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'reclamo_detail_screen.dart';
+
 /// Pantalla para crear un nuevo reclamo.
 class NewReclamoScreen extends StatefulWidget {
   const NewReclamoScreen({super.key});
@@ -57,19 +59,29 @@ class _NewReclamoScreenState extends State<NewReclamoScreen> {
     try {
       final supabase = Supabase.instance.client;
 
-      await supabase.from('reclamos').insert({
-        'unidad_id': contexto.unidadId,
-        'usuario_creador_id': user.id,
-        'tipo': _tipoSeleccionado ?? 'Otros',
-        'titulo': _tituloController.text.trim(),
-        'descripcion': _descripcionController.text.trim().isEmpty
-            ? null
-            : _descripcionController.text.trim(),
-        'prioridad': _prioridadSeleccionada,
-      });
+      final insertRes = await supabase
+          .from('reclamos')
+          .insert({
+            'unidad_id': contexto.unidadId,
+            'usuario_creador_id': user.id,
+            'tipo': _tipoSeleccionado ?? 'Otros',
+            'titulo': _tituloController.text.trim(),
+            'descripcion': _descripcionController.text.trim().isEmpty
+                ? null
+                : _descripcionController.text.trim(),
+            'prioridad': _prioridadSeleccionada,
+          })
+          .select()
+          .single();
+
+      final nuevoId = insertRes['id'] as String;
 
       if (!mounted) return;
-      Navigator.of(context).pop(true);
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => ReclamoDetailScreen(reclamoId: nuevoId),
+        ),
+      );
     } on PostgrestException catch (e) {
       setState(() {
         _errorMessage = e.message;

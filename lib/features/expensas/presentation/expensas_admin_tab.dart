@@ -72,7 +72,22 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
           hasta: _hasta,
         )
         .then(
-          (lista) => lista.where(_coincideFiltroEstadoVirtual).toList(),
+          (lista) {
+            final filtradas =
+                lista.where(_coincideFiltroEstadoVirtual).toList();
+            filtradas.sort((a, b) {
+              final pa = _estadoPriority(a);
+              final pb = _estadoPriority(b);
+              if (pa != pb) return pa.compareTo(pb);
+              final fa = a.fechaVencimiento;
+              final fb = b.fechaVencimiento;
+              if (fa == null && fb == null) return 0;
+              if (fa == null) return 1;
+              if (fb == null) return -1;
+              return fa.compareTo(fb);
+            });
+            return filtradas;
+          },
         );
   }
 
@@ -130,8 +145,7 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
   bool _coincideFiltroEstadoVirtual(Expensa expensa) {
     final filtro = _estadoSeleccionado.toUpperCase();
     final estadoBase = expensa.estado.toUpperCase();
-    final estadoEfectivo = expensa.estadoEfectivo.toUpperCase();
-    final esVencida = estadoEfectivo == 'VENCIDA';
+    final esVencida = expensa.estaVencida;
 
     switch (filtro) {
       case 'VENCIDA':
@@ -148,6 +162,14 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
       default:
         return true;
     }
+  }
+
+  int _estadoPriority(Expensa e) {
+    if (e.estaVencida) return 0;
+    if (!e.estaPagada && !e.estaParcial) return 1;
+    if (e.estaParcial) return 2;
+    if (e.estaPagada) return 3;
+    return 4;
   }
 
   @override
@@ -464,5 +486,4 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
     }
   }
 }
-
 

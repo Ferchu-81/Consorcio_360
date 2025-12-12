@@ -6,20 +6,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class ExpensasRepository {
   final SupabaseClient _client = Supabase.instance.client;
 
-  int _estadoPriority(String estado) {
-    switch (estado.toUpperCase()) {
-      case 'VENCIDA':
-        return 0;
-      case 'PENDIENTE':
-        return 1;
-      case 'PARCIAL':
-      case 'PAGOPARCIAL':
-        return 2;
-      case 'PAGADA':
-        return 3;
-      default:
-        return 4;
-    }
+  int _estadoPriority(Expensa e) {
+    if (e.estaVencida) return 0;
+    if (!e.estaPagada && !e.estaParcial) return 1;
+    if (e.estaParcial) return 2;
+    if (e.estaPagada) return 3;
+    return 4;
   }
 
   /// Obtiene las expensas de una unidad ordenadas por periodo descendente.
@@ -46,12 +38,15 @@ class ExpensasRepository {
         .toList();
 
     list.sort((a, b) {
-      final estA = _estadoPriority(a.estadoEfectivo);
-      final estB = _estadoPriority(b.estadoEfectivo);
+      final estA = _estadoPriority(a);
+      final estB = _estadoPriority(b);
       if (estA != estB) return estA.compareTo(estB);
 
-      final fa = a.fechaVenc;
-      final fb = b.fechaVenc;
+      final fa = a.fechaVencimiento;
+      final fb = b.fechaVencimiento;
+      if (fa == null && fb == null) return 0;
+      if (fa == null) return 1;
+      if (fb == null) return -1;
       return fa.compareTo(fb);
     });
 

@@ -870,7 +870,7 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
                       _InfoChip(
                         label: 'Unidad',
                         value: unidadCodigo.isNotEmpty
-                            ? 'Unidad $unidadCodigo'
+                            ? unidadCodigo
                             : 'Sin unidad',
                       ),
                       _InfoChip(
@@ -1102,7 +1102,6 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
     );
   }
 }
-
 
 
 

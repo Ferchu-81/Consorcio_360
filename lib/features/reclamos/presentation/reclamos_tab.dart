@@ -1,4 +1,5 @@
 import 'package:consorcio_360/core/state/current_context_notifier.dart';
+import 'package:consorcio_360/data/models/usuario_contexto.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -8,12 +9,17 @@ import 'reclamo_detail_screen.dart';
 import 'reclamos_utils.dart';
 
 /// Tab de Reclamos (lista + botón "Nuevo reclamo")
-import 'package:consorcio_360/data/models/usuario_contexto.dart';
+enum ReclamosFilter { todos, activos, resueltos }
 
 class ReclamosTab extends StatefulWidget {
   final UsuarioContexto? contexto;
+  final ReclamosFilter initialFilter;
 
-  const ReclamosTab({super.key, this.contexto});
+  const ReclamosTab({
+    super.key,
+    this.contexto,
+    this.initialFilter = ReclamosFilter.todos,
+  });
 
   @override
   State<ReclamosTab> createState() => _ReclamosTabState();
@@ -21,10 +27,12 @@ class ReclamosTab extends StatefulWidget {
 
 class _ReclamosTabState extends State<ReclamosTab> {
   late Future<List<Map<String, dynamic>>> _futureReclamos;
+  late ReclamosFilter _filter;
 
   @override
   void initState() {
     super.initState();
+    _filter = widget.initialFilter;
     _futureReclamos = _loadReclamos();
   }
 
@@ -44,7 +52,21 @@ class _ReclamosTabState extends State<ReclamosTab> {
         .order('fecha_creacion', ascending: false);
 
     final data = response as List<dynamic>;
-    return data.cast<Map<String, dynamic>>();
+    final lista = data.cast<Map<String, dynamic>>();
+
+    const cerrados = {'RESUELTO', 'CERRADO', 'ANULADO'};
+
+    if (_filter == ReclamosFilter.activos) {
+      return lista
+          .where((r) => !cerrados.contains((r['estado'] ?? '').toString()))
+          .toList();
+    }
+    if (_filter == ReclamosFilter.resueltos) {
+      return lista
+          .where((r) => cerrados.contains((r['estado'] ?? '').toString()))
+          .toList();
+    }
+    return lista;
   }
 
   Future<void> _openNewReclamo() async {
@@ -158,8 +180,8 @@ class _ReclamosTabState extends State<ReclamosTab> {
                 if (reclamos.isEmpty) {
                   return Center(
                     child: Text(
-                      'No tenes reclamos para esta unidad.\n'
-                      'Crea tu primer reclamo con el boton de arriba.',
+                      'No tenés reclamos para esta unidad.\n'
+                      'Creá tu primer reclamo con el botón de arriba.',
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodyMedium,
                     ),

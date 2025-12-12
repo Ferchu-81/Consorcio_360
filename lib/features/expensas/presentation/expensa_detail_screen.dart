@@ -251,12 +251,18 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
       }
 
       await _loadDetalle();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error iniciando pago: $e')),
-        );
-      }
+    } catch (e, st) {
+      debugPrint('Error iniciando pago MP: $e\n$st');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'No se pudo iniciar el pago en el entorno de pruebas de Mercado Pago. '
+            'La expensa seguirá como pendiente.',
+          ),
+          duration: Duration(seconds: 4),
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -303,12 +309,18 @@ class _ExpensaDetailScreenState extends State<ExpensaDetailScreen> {
       }
 
       await _loadDetalle();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error verificando pago: $e')),
-        );
-      }
+    } catch (e, st) {
+      debugPrint('Error verificando pago MP: $e\n$st');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'No se pudo verificar el pago en Mercado Pago (entorno de pruebas). '
+            'Si el pago se acreditó, la administración podrá actualizarlo manualmente.',
+          ),
+          duration: Duration(seconds: 4),
+        ),
+      );
     } finally {
       if (mounted) setState(() => _verificandoPagoMp = false);
     }

@@ -48,15 +48,12 @@ class _PagosTabState extends State<PagosTab> {
     final rol = ctx.rol;
 
     if (rol == 'ADMIN_CONSORCIO') {
-      // ADMIN: ve todos los pagos del consorcio actual.
-      // Si la unidad del contexto es GLOBAL, no filtramos por unidad.
       return _repo.fetchPagosAdmin(
         consorcioId: ctx.consorcioId,
         unidadId: ctx.unidadCodigo == 'GLOBAL' ? null : ctx.unidadId,
       );
     }
 
-    // MORADOR / PROPIETARIO: solo pagos de su unidad
     return _repo.fetchPagosMorador(unidadId: ctx.unidadId);
   }
 
@@ -70,6 +67,46 @@ class _PagosTabState extends State<PagosTab> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    final header = Card(
+      elevation: 0,
+      color: Colors.blue.shade50,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: Colors.blueAccent.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            Text(
+              'Pagos y tablero',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Este módulo muestra el estado de los pagos de expensas y está '
+              'en desarrollo. La app ya implementa la integración con Mercado '
+              'Pago en entorno de pruebas (sandbox): preferencias, checkout en '
+              'la app y registro del pago.\n\n'
+              'Durante las pruebas, algunas validaciones de usuarios de prueba '
+              'de Mercado Pago pueden impedir completar un pago ficticio. La '
+              'aplicación muestra un mensaje claro y mantiene la expensa como '
+              'pendiente. En producción se usará la cuenta real del '
+              'administrador y, opcionalmente, webhooks para confirmar pagos '
+              'de forma automática.',
+              style: TextStyle(fontSize: 13, height: 1.3),
+            ),
+          ],
+        ),
+      ),
+    );
 
     return RefreshIndicator(
       onRefresh: _refresh,
@@ -101,9 +138,14 @@ class _PagosTabState extends State<PagosTab> {
           if (pagos.isEmpty) {
             return ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              children: const [
-                SizedBox(height: 80),
-                Center(
+              children: [
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: header,
+                ),
+                const SizedBox(height: 12),
+                const Center(
                   child: Padding(
                     padding: EdgeInsets.all(16),
                     child: Text(
@@ -118,12 +160,18 @@ class _PagosTabState extends State<PagosTab> {
 
           return ListView.builder(
             physics: const AlwaysScrollableScrollPhysics(),
-            itemCount: pagos.length,
+            itemCount: pagos.length + 1,
             itemBuilder: (context, index) {
-              final pago = pagos[index];
+              if (index == 0) {
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                  child: header,
+                );
+              }
+
+              final pago = pagos[index - 1];
               final esAdmin = widget.contexto.rol == 'ADMIN_CONSORCIO';
 
-              // Mostrar código legible; para admin intentamos mapear id->código.
               final unidadLabel = esAdmin
                   ? (_unidadCodigoPorId[pago.unidadId] ??
                       (widget.contexto.unidadCodigo != 'GLOBAL'
@@ -146,7 +194,7 @@ class _PagosTabState extends State<PagosTab> {
                 child: ListTile(
                   leading: const Icon(Icons.receipt_long_outlined),
                   title: Text(
-                    'Unidad $unidadLabel • $periodoLabel',
+                    'Unidad $unidadLabel · $periodoLabel',
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                   subtitle: Text(

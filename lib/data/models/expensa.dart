@@ -25,16 +25,22 @@ class Expensa {
   });
 
   /// Estado considerando vencimiento: si está pendiente y ya pasó el vencimiento, se muestra VENCIDA.
-  String get estadoEfectivo {
-    final hoy = DateTime.now();
-    final hoySinHora = DateTime(hoy.year, hoy.month, hoy.day);
-    final vencSinHora =
-        DateTime(fechaVenc.year, fechaVenc.month, fechaVenc.day);
+  String get estadoEfectivo => estaVencida ? 'VENCIDA' : estado;
 
-    if (estado == 'PENDIENTE' && vencSinHora.isBefore(hoySinHora)) {
-      return 'VENCIDA';
-    }
-    return estado;
+  DateTime? get fechaVencimiento => fechaVenc;
+
+  bool get estaPagada => estado.toUpperCase() == 'PAGADA';
+
+  bool get estaParcial =>
+      estado.toUpperCase() == 'PARCIAL' || estado.toUpperCase() == 'PAGOPARCIAL';
+
+  bool get estaVencida {
+    final fv = fechaVencimiento;
+    if (fv == null || estaPagada) return false;
+    final hoy = DateTime.now();
+    final hoySoloFecha = DateTime(hoy.year, hoy.month, hoy.day);
+    final venSoloFecha = DateTime(fv.year, fv.month, fv.day);
+    return venSoloFecha.isBefore(hoySoloFecha);
   }
 
   String get periodoFormatted =>
@@ -66,9 +72,7 @@ class Expensa {
       id: map['id'] as String,
       consorcioId: map['consorcio_id'] as String,
       unidadId: map['unidad_id'] as String,
-      unidadCodigo: (map['unidades'] as Map<String, dynamic>?)
-          ?['codigo']
-          ?.toString(),
+      unidadCodigo: (map['unidades'] as Map<String, dynamic>?)?['codigo']?.toString(),
       periodo: DateTime.tryParse(map['periodo']?.toString() ?? '') ??
           DateTime.now(),
       importeTotal: _toDouble(map['importe_total']),
@@ -124,8 +128,6 @@ class Expensa {
   }
 
   bool get estaPendiente => estado == 'PENDIENTE';
-  bool get estaPagada => estado == 'PAGADA';
-  bool get estaVencida => estado == 'VENCIDA';
 
   static double _toDouble(dynamic value) {
     if (value == null) return 0;

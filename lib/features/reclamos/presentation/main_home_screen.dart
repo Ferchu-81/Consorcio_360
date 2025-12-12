@@ -1,3 +1,4 @@
+import 'package:consorcio_360/config/ui/config_screen.dart';
 import 'package:consorcio_360/core/state/current_context_notifier.dart';
 import 'package:consorcio_360/features/auth/presentation/login_screen.dart';
 import 'package:consorcio_360/features/context/presentation/context_selection_screen.dart';
@@ -11,8 +12,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'consorcio_reclamos_screen.dart';
 import 'reclamos_tab.dart';
 
-/// Home principal, con tabs:
-/// Inicio (dashboard) / Reclamos / Expensas / Pagos.
+/// Home principal, con tabs: Inicio / Reclamos / Expensas / Pagos.
 /// Si el rol actual es ADMIN_CONSORCIO, el tab de Reclamos
 /// muestra el tablero general del consorcio.
 class MainHomeScreen extends StatefulWidget {
@@ -185,6 +185,17 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
               visualDensity: VisualDensity.compact,
               onPressed: _confirmChangeContext,
             ),
+          ),
+          IconButton(
+            tooltip: 'Configuración',
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const ConfigScreen(),
+                ),
+              );
+            },
           ),
           IconButton(
             tooltip: 'Cerrar sesión',

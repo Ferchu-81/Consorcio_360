@@ -1,5 +1,4 @@
 import 'package:consorcio_360/data/models/usuario_contexto.dart';
-import 'package:consorcio_360/features/reclamos/presentation/consorcio_reclamos_screen.dart';
 import 'package:consorcio_360/features/reclamos/presentation/reclamos_tab.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -269,9 +268,6 @@ class _DashboardTabState extends State<DashboardTab> {
                 ),
               ),
 
-              _buildMisReclamosCard(theme),
-              const SizedBox(height: 16),
-
               _buildExpensasCard(theme),
               const SizedBox(height: 16),
               _buildReclamosCard(theme),
@@ -425,57 +421,6 @@ class _DashboardTabState extends State<DashboardTab> {
     return sections;
   }
 
-  Widget _buildMisReclamosCard(ThemeData theme) {
-    final esAdmin = widget.contexto.rol == 'ADMIN_CONSORCIO';
-
-    return InkWell(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => esAdmin
-                ? ConsorcioReclamosScreen()
-                : const ReclamosTab(),
-          ),
-        );
-      },
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: Colors.blue.shade50,
-          border: Border.all(color: Colors.blueAccent.withOpacity(0.4)),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.report_gmailerrorred, color: Colors.blueAccent),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text(
-                    'Mis reclamos',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Ver y seguir los reclamos de esta unidad.',
-                    style: TextStyle(fontSize: 13),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_right),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _legendItem({
     required Color color,
     required String label,
@@ -525,25 +470,48 @@ class _DashboardTabState extends State<DashboardTab> {
             Row(
               children: [
                 Expanded(
-                  child: _metricBox(
-                    color: Colors.orange,
-                    label: 'Activos',
-                    value: _reclamosActivos,
-                    icon: Icons.assignment_late_outlined,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () => _openReclamosConFiltro(
+                      ReclamosFilter.activos,
+                    ),
+                    child: _metricBox(
+                      color: Colors.orange,
+                      label: 'Activos',
+                      value: _reclamosActivos,
+                      icon: Icons.assignment_late_outlined,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _metricBox(
-                    color: Colors.green,
-                    label: 'Resueltos',
-                    value: _reclamosResueltos,
-                    icon: Icons.assignment_turned_in_outlined,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () => _openReclamosConFiltro(
+                      ReclamosFilter.resueltos,
+                    ),
+                    child: _metricBox(
+                      color: Colors.green,
+                      label: 'Resueltos',
+                      value: _reclamosResueltos,
+                      icon: Icons.assignment_turned_in_outlined,
+                    ),
                   ),
                 ),
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _openReclamosConFiltro(ReclamosFilter filter) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ReclamosTab(
+          contexto: widget.contexto,
+          initialFilter: filter,
         ),
       ),
     );
