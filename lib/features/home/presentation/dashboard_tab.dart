@@ -1,4 +1,6 @@
 import 'package:consorcio_360/data/models/usuario_contexto.dart';
+import 'package:consorcio_360/features/reclamos/presentation/consorcio_reclamos_screen.dart';
+import 'package:consorcio_360/features/reclamos/presentation/reclamos_tab.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -236,36 +238,39 @@ class _DashboardTabState extends State<DashboardTab> {
       children: [
         RefreshIndicator(
           onRefresh: _refresh,
-          child: ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
-            children: [
-              Text(
-                'Hola, $nombre',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
+          children: [
+            Text(
+              'Hola, $nombre',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(height: 4),
-              Text(
-                _rolLegible,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey[700],
-                ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              _rolLegible,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.grey[700],
               ),
-              const SizedBox(height: 16),
+            ),
+            const SizedBox(height: 16),
 
-              if (_error != null)
-                Card(
-                  color: Colors.red[50],
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Text(
-                      _error!,
-                      style: const TextStyle(color: Colors.red),
-                    ),
+            if (_error != null)
+              Card(
+                color: Colors.red[50],
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Text(
+                    _error!,
+                    style: const TextStyle(color: Colors.red),
                   ),
                 ),
+              ),
+
+              _buildMisReclamosCard(theme),
+              const SizedBox(height: 16),
 
               _buildExpensasCard(theme),
               const SizedBox(height: 16),
@@ -418,6 +423,57 @@ class _DashboardTabState extends State<DashboardTab> {
     }
 
     return sections;
+  }
+
+  Widget _buildMisReclamosCard(ThemeData theme) {
+    final esAdmin = widget.contexto.rol == 'ADMIN_CONSORCIO';
+
+    return InkWell(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => esAdmin
+                ? ConsorcioReclamosScreen()
+                : const ReclamosTab(),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: Colors.blue.shade50,
+          border: Border.all(color: Colors.blueAccent.withOpacity(0.4)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.report_gmailerrorred, color: Colors.blueAccent),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    'Mis reclamos',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Ver y seguir los reclamos de esta unidad.',
+                    style: TextStyle(fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _legendItem({

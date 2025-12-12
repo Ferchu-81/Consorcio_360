@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+﻿import 'dart:typed_data';
 
 import 'package:consorcio_360/core/state/current_context_notifier.dart';
 import 'package:consorcio_360/data/models/usuario_contexto.dart';
@@ -12,6 +12,48 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:consorcio_360/shared/pdf/pdf_actions.dart';
+
+class _InfoChip extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _InfoChip({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: Colors.grey.shade200,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '$label: ',
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          Flexible(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 12,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class ReclamoDetailScreen extends StatefulWidget {
   final String reclamoId;
@@ -796,6 +838,7 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
         ],
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Card(
             margin: const EdgeInsets.fromLTRB(12, 8, 12, 4),
@@ -815,24 +858,24 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
-                  if (_reclamo!['tipo'] != null)
-                    Text(
-                      'Tipo: ${_reclamo!['tipo']}',
-                      style: theme.textTheme.bodySmall,
-                    ),
-                  const SizedBox(height: 6),
-                  Row(
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
                     children: [
-                      if (unidadCodigo.isNotEmpty)
-                        Chip(
-                          label: Text('Unidad $unidadCodigo'),
-                          visualDensity: VisualDensity.compact,
-                        ),
-                      const SizedBox(width: 6),
-                      Chip(
-                        label: Text('Prioridad: $prioridadLabel'),
-                        visualDensity: VisualDensity.compact,
+                      _InfoChip(
+                        label: 'Tipo',
+                        value: (_reclamo!['tipo'] ?? '').toString(),
+                      ),
+                      _InfoChip(
+                        label: 'Unidad',
+                        value: unidadCodigo.isNotEmpty
+                            ? 'Unidad $unidadCodigo'
+                            : 'Sin unidad',
+                      ),
+                      _InfoChip(
+                        label: 'Prioridad',
+                        value: prioridadLabel,
                       ),
                     ],
                   ),
@@ -908,6 +951,22 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
               ),
             ),
           ),
+          if (_mensajes.isEmpty) ...[
+            const SizedBox(height: 8),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: Text(
+                'Este es el historial de mensajes entre vos y la administración '
+                'para este reclamo. Todo lo que escribas acá queda registrado '
+                'como parte del expediente.',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black54,
+                  height: 1.3,
+                ),
+              ),
+            ),
+          ],
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
@@ -1043,3 +1102,11 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
     );
   }
 }
+
+
+
+
+
+
+
+

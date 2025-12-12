@@ -147,7 +147,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           return 'Ingresa tu email';
                         }
                         if (!value.contains('@')) {
-                          return 'Email invalido';
+                          return 'Email inválido';
                         }
                         return null;
                       },
@@ -157,7 +157,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       controller: _passwordController,
                       obscureText: true,
                       decoration: const InputDecoration(
-                        labelText: 'contraseña',
+                        labelText: 'Contraseña',
                         prefixIcon: Icon(Icons.lock_outline),
                       ),
                       validator: (value) {
@@ -165,7 +165,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           return 'Ingresa una contraseña';
                         }
                         if (value.length < 6) {
-                          return 'Minimo 6 caracteres';
+                          return 'Mínimo 6 caracteres';
                         }
                         return null;
                       },
@@ -175,12 +175,12 @@ class _SignupScreenState extends State<SignupScreen> {
                       controller: _confirmPasswordController,
                       obscureText: true,
                       decoration: const InputDecoration(
-                        labelText: 'Confirma contraseña',
+                        labelText: 'Confirmá contraseña',
                         prefixIcon: Icon(Icons.lock_outline),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Confirma la contraseña';
+                          return 'Confirmá la contraseña';
                         }
                         if (value != _passwordController.text) {
                           return 'Las contraseñas no coinciden';
@@ -191,7 +191,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     const SizedBox(height: 16),
                     Divider(color: Colors.grey.shade300, height: 24),
                     Text(
-                      'Datos personales y facturacion',
+                      'Datos personales y facturación',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -230,7 +230,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     TextFormField(
                       controller: _telefonoController,
                       decoration: const InputDecoration(
-                        labelText: 'Telefono',
+                        labelText: 'Teléfono',
                         prefixIcon: Icon(Icons.phone_outlined),
                       ),
                       keyboardType: TextInputType.phone,

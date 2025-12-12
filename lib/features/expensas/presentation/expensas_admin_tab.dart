@@ -63,13 +63,17 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
   }
 
   Future<List<Expensa>> _consultarExpensas() {
-    return _repo.fetchExpensasAdmin(
-      consorcioId: widget.consorcioId,
-      unidadId: _unidadSeleccionada, // null = todas
-      estado: _estadoSeleccionado == 'TODOS' ? null : _estadoSeleccionado,
-      desde: _desde,
-      hasta: _hasta,
-    );
+    return _repo
+        .fetchExpensasAdmin(
+          consorcioId: widget.consorcioId,
+          unidadId: _unidadSeleccionada, // null = todas
+          estado: null, // filtramos por estado en memoria para contemplar vencidas
+          desde: _desde,
+          hasta: _hasta,
+        )
+        .then(
+          (lista) => lista.where(_coincideFiltroEstadoVirtual).toList(),
+        );
   }
 
   Future<void> _aplicarFiltros() async {
@@ -121,6 +125,29 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
   String _textoFecha(DateTime? d) {
     if (d == null) return 'Sin filtro';
     return '${d.month.toString().padLeft(2, '0')}/${d.year}';
+  }
+
+  bool _coincideFiltroEstadoVirtual(Expensa expensa) {
+    final filtro = _estadoSeleccionado.toUpperCase();
+    final estadoBase = expensa.estado.toUpperCase();
+    final estadoEfectivo = expensa.estadoEfectivo.toUpperCase();
+    final esVencida = estadoEfectivo == 'VENCIDA';
+
+    switch (filtro) {
+      case 'VENCIDA':
+        return esVencida;
+      case 'PENDIENTE':
+        return estadoBase == 'PENDIENTE' && !esVencida;
+      case 'PAGADA':
+        return estadoBase == 'PAGADA';
+      case 'PARCIAL':
+        return estadoBase == 'PARCIAL' || estadoBase == 'PAGOPARCIAL';
+      case 'ANULADA':
+        return estadoBase == 'ANULADA';
+      case 'TODOS':
+      default:
+        return true;
+    }
   }
 
   @override
@@ -437,6 +464,5 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
     }
   }
 }
-
 
 

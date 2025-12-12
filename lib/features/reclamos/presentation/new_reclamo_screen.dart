@@ -122,12 +122,14 @@ class _NewReclamoScreenState extends State<NewReclamoScreen> {
                   TextFormField(
                     controller: _tituloController,
                     decoration: const InputDecoration(
-                      labelText: 'Titulo / Asunto',
+                      labelText: 'Título',
+                      hintText: 'Ej.: Fuga de agua en baño',
                     ),
+                    maxLength: 50,
                     textCapitalization: TextCapitalization.sentences,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Ingresa un titulo';
+                        return 'Ingresa un título';
                       }
                       return null;
                     },
@@ -135,8 +137,13 @@ class _NewReclamoScreenState extends State<NewReclamoScreen> {
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _descripcionController,
-                    decoration: const InputDecoration(labelText: 'Descripcion'),
+                    decoration: const InputDecoration(
+                      labelText: 'Descripción',
+                      hintText: 'Contá brevemente qué está pasando...',
+                      alignLabelWithHint: true,
+                    ),
                     maxLines: 4,
+                    maxLength: 300,
                     textCapitalization: TextCapitalization.sentences,
                   ),
                   const SizedBox(height: 12),

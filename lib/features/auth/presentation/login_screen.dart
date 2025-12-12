@@ -73,7 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Ingresa un email valido en el campo Email para recuperar la contraseña.',
+            'Ingresa un email válido en el campo Email para recuperar la contraseña.',
           ),
         ),
       );
@@ -134,16 +134,25 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.apartment, size: 72, color: Color(0xFF2E7D32)),
-              const SizedBox(height: 8),
-              Text(
-                'Consorcio 360',
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF2E7D32),
-                ),
+              Column(
+                children: [
+                  Image.asset(
+                    'assets/icon/consorcio_360_icon.png',
+                    height: 120,
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Consorcio 360',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blueAccent,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
               ),
-              const SizedBox(height: 24),
               Card(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -161,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          'Iniciar sesion',
+                          'Iniciar sesión',
                           style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
@@ -180,7 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               return 'Ingresa tu email';
                             }
                             if (!value.contains('@')) {
-                              return 'Email invalido';
+                              return 'Email inválido';
                             }
                             return null;
                           },
@@ -190,7 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           controller: _passwordController,
                           obscureText: true,
                           decoration: const InputDecoration(
-                        labelText: 'contraseña',
+                            labelText: 'Contraseña',
                             prefixIcon: Icon(Icons.lock_outline),
                           ),
                           validator: (value) {
@@ -198,7 +207,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               return 'Ingresa tu contraseña';
                             }
                             if (value.length < 6) {
-                              return 'Minimo 6 caracteres';
+                              return 'Mínimo 6 caracteres';
                             }
                             return null;
                           },
@@ -221,7 +230,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : const Text('Ingresa'),
+                              : const Text('Ingresar'),
                         ),
                         TextButton(
                           onPressed: _isLoading ? null : _resetPassword,
@@ -230,7 +239,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 8),
                         TextButton(
                           onPressed: _goToSignup,
-                          child: const Text('No tenes cuenta? Crear cuenta'),
+                          child: const Text('¿No tenés cuenta? Crear cuenta'),
                         ),
                       ],
                     ),

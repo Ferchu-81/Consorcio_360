@@ -6,6 +6,22 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class ExpensasRepository {
   final SupabaseClient _client = Supabase.instance.client;
 
+  int _estadoPriority(String estado) {
+    switch (estado.toUpperCase()) {
+      case 'VENCIDA':
+        return 0;
+      case 'PENDIENTE':
+        return 1;
+      case 'PARCIAL':
+      case 'PAGOPARCIAL':
+        return 2;
+      case 'PAGADA':
+        return 3;
+      default:
+        return 4;
+    }
+  }
+
   /// Obtiene las expensas de una unidad ordenadas por periodo descendente.
   Future<List<Expensa>> fetchExpensasDeUnidad(String unidadId) async {
     final data = await _client
@@ -25,8 +41,21 @@ class ExpensasRepository {
         .neq('estado', 'ANULADA')
         .order('periodo', ascending: false);
 
-    final list = List<Map<String, dynamic>>.from(data);
-    return list.map(Expensa.fromMap).toList();
+    final list = List<Map<String, dynamic>>.from(data)
+        .map(Expensa.fromMap)
+        .toList();
+
+    list.sort((a, b) {
+      final estA = _estadoPriority(a.estadoEfectivo);
+      final estB = _estadoPriority(b.estadoEfectivo);
+      if (estA != estB) return estA.compareTo(estB);
+
+      final fa = a.fechaVenc;
+      final fb = b.fechaVenc;
+      return fa.compareTo(fb);
+    });
+
+    return list;
   }
 
   Future<Expensa?> fetchExpensaPorId(String id) async {

@@ -106,7 +106,7 @@ class _ContextSelectionScreenState extends State<ContextSelectionScreen> {
         title: const Text('Seleccionar contexto'),
         actions: [
           IconButton(
-            tooltip: 'Cerrar sesion',
+            tooltip: 'Cerrar sesión',
             icon: const Icon(Icons.logout),
             onPressed: _logout,
           ),
@@ -138,8 +138,8 @@ class _ContextSelectionScreenState extends State<ContextSelectionScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text(
-                  'No tenes unidades asignadas.\n\n'
-                  'Revisa en Supabase que exista al menos una fila en:\n'
+                  'No tenés unidades asignadas.\n\n'
+                  'Revisá en Supabase que exista al menos una fila en:\n'
                   'consorcios, unidades y usuarios_unidades para tu usuario.',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium,
@@ -148,47 +148,64 @@ class _ContextSelectionScreenState extends State<ContextSelectionScreen> {
             );
           }
 
-          return ListView.builder(
+          return Padding(
             padding: const EdgeInsets.all(16),
-            itemCount: contextos.length,
-            itemBuilder: (context, index) {
-              final ctx = contextos[index];
-              return Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Elegí con qué perfil querés entrar:\n'
+                  '• Morador: quien vive actualmente en la unidad.\n'
+                  '• Propietario: dueño de la unidad.\n'
+                  '• Admin: administración del consorcio.',
+                  style: TextStyle(fontSize: 14),
                 ),
-                margin: const EdgeInsets.only(bottom: 12),
-                child: ListTile(
-                  title: Text(
-                    ctx.consorcioNombre,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: contextos.length,
+                    itemBuilder: (context, index) {
+                      final ctx = contextos[index];
+                      return Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        margin: const EdgeInsets.only(bottom: 12),
+                        child: ListTile(
+                          title: Text(
+                            ctx.consorcioNombre,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          subtitle: Text(
+                            'Unidad ${ctx.unidadCodigo} - ${ctx.rolLegible}',
+                          ),
+                          trailing: ctx.esTitular
+                              ? const Chip(
+                                  label: Text('Titular'),
+                                  visualDensity: VisualDensity.compact,
+                                )
+                              : null,
+                          onTap: () async {
+                            final navigator = Navigator.of(context);
+                            // 1) Guardamos el contexto globalmente
+                            context.read<CurrentContextNotifier>().setContext(ctx);
+                            // 2) Persistimos la elección
+                            await ContextStorage.guardarContexto(ctx);
+                            if (!mounted) return;
+                            // 3) Navegamos al home principal
+                            navigator.pushReplacement(
+                              MaterialPageRoute(
+                                builder: (_) => const MainHomeScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
                   ),
-                  subtitle: Text(
-                    'Unidad ${ctx.unidadCodigo} - ${ctx.rolLegible}',
-                  ),
-                  trailing: ctx.esTitular
-                      ? const Chip(
-                          label: Text('Titular'),
-                          visualDensity: VisualDensity.compact,
-                        )
-                      : null,
-                  onTap: () async {
-                    final navigator = Navigator.of(context);
-                    // 1) Guardamos el contexto globalmente
-                    context.read<CurrentContextNotifier>().setContext(ctx);
-                    // 2) Persistimos la elección
-                    await ContextStorage.guardarContexto(ctx);
-                    if (!mounted) return;
-                    // 3) Navegamos al home principal
-                    navigator.pushReplacement(
-                      MaterialPageRoute(
-                        builder: (_) => const MainHomeScreen(),
-                      ),
-                    );
-                  },
                 ),
-              );
-            },
+              ],
+            ),
           );
         },
       ),
