@@ -29,8 +29,8 @@ class _ConsorcioReclamosScreenState extends State<ConsorcioReclamosScreen> {
   final List<String> _estadosFiltro = const [
     'TODOS',
     'PENDIENTE',
-    'EN_CURSO',
-    'EN_ESPERA',
+    'EN CURSO',
+    'EN ESPERA',
     'RESUELTO',
     'CERRADO',
   ];
@@ -142,9 +142,9 @@ class _ConsorcioReclamosScreenState extends State<ConsorcioReclamosScreen> {
     switch (estado) {
       case 'PENDIENTE':
         return Colors.orange;
-      case 'EN_CURSO':
+      case 'EN CURSO':
         return Colors.blue;
-      case 'EN_ESPERA':
+      case 'EN ESPERA':
         return Colors.amber;
       case 'RESUELTO':
         return Colors.green;

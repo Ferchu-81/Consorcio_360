@@ -76,9 +76,9 @@ class _ReclamosTabState extends State<ReclamosTab> {
     switch (estado) {
       case 'PENDIENTE':
         return Colors.orange;
-      case 'EN_CURSO':
+      case 'EN CURSO':
         return Colors.blue;
-      case 'EN_ESPERA':
+      case 'EN ESPERA':
         return Colors.amber;
       case 'RESUELTO':
         return Colors.green;

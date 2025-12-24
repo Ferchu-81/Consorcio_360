@@ -1,7 +1,7 @@
-/// Helpers compartidos para la secciÃ³n de reclamos.
+/// Helpers compartidos para la sección de reclamos.
 library;
 
-/// Convierte un ENUM tipo "EN_CURSO" a "En Curso".
+/// Convierte un ENUM tipo "EN CURSO" a "En Curso".
 String formatEnumLabel(String value) {
   if (value.isEmpty) return value;
   return value

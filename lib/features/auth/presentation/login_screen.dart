@@ -4,6 +4,37 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../context/presentation/context_selection_screen.dart';
 import 'signup_screen.dart';
 
+class _LoginLogoHeader extends StatelessWidget {
+  const _LoginLogoHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: 96,
+          width: 96,
+          child: Image.asset(
+            'assets/icon/consorcio_360_icon.png',
+            fit: BoxFit.contain,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Consorcio 360',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: const Color(0xFF2962FF),
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.2,
+              ),
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+}
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -128,28 +159,20 @@ class _LoginScreenState extends State<LoginScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.apartment, size: 72, color: Color(0xFF2E7D32)),
-              const SizedBox(height: 8),
-              Text(
-                'Consorcio 360',
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF2E7D32),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                elevation: 4,
-                child: Padding(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const _LoginLogoHeader(),
+                Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 4,
+                  child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 20,
                     vertical: 24,
@@ -236,8 +259,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

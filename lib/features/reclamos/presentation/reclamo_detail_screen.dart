@@ -13,6 +13,61 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:consorcio_360/shared/pdf/pdf_actions.dart';
 
+class _ReclamoEmptyHint extends StatelessWidget {
+  const _ReclamoEmptyHint();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.blueGrey.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.blueGrey.withValues(alpha: 0.15),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              Text(
+                '¿Cómo funciona este reclamo?',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(height: 6),
+              Text(
+                'Usá este espacio como un chat para comunicarte con la administración. Cada mensaje queda registrado como parte del expediente del reclamo y no se puede editar ni borrar.',
+                style: TextStyle(
+                  fontSize: 12,
+                  height: 1.3,
+                  color: Colors.black54,
+                ),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'Podés adjuntar fotos, describir mejor el problema y hacer seguimiento '
+                'de las respuestas.',
+                style: TextStyle(
+                  fontSize: 12,
+                  height: 1.3,
+                  color: Colors.black54,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class ReclamoDetailScreen extends StatefulWidget {
   final String reclamoId;
 
@@ -602,7 +657,9 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
     }
 
     final doc = pw.Document();
-    final estadoActual = _reclamo!['estado']?.toString() ?? 'PENDIENTE';
+    final estadoActualRaw = _reclamo!['estado']?.toString() ?? 'PENDIENTE';
+    final estadoActual =
+        estadoActualRaw.trim().toUpperCase().replaceAll(' ', '_');
     final estadoLabel = formatEnumLabel(estadoActual);
     final prioridadLabel = formatEnumLabel(
       _reclamo!['prioridad']?.toString() ?? '',
@@ -848,7 +905,9 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
                             Text('Estado:', style: theme.textTheme.bodySmall),
                             const SizedBox(width: 4),
                             DropdownButton<String>(
-                              value: estadoActual,
+                              value: _estadosPosibles.contains(estadoActual)
+                                  ? estadoActual
+                                  : null,
                               underline: const SizedBox.shrink(),
                               items: _estadosPosibles
                                   .map(
@@ -909,83 +968,89 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              itemCount: _mensajes.length,
-              itemBuilder: (context, index) {
-                final m = _mensajes[index];
-                final esMio = m['usuario_id'] == userId;
+            child: _mensajes.isEmpty
+                ? const _ReclamoEmptyHint()
+                : ListView.builder(
+                    controller: _scrollController,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    itemCount: _mensajes.length,
+                    itemBuilder: (context, index) {
+                      final m = _mensajes[index];
+                      final esMio = m['usuario_id'] == userId;
 
-                final fechaStr = formatShortDateFromIso(m['fecha_mensaje']);
+                      final fechaStr =
+                          formatShortDateFromIso(m['fecha_mensaje']);
 
-                final usuarioMap =
-                    (m['usuario'] as Map<String, dynamic>?) ?? {};
-                final nombreOtro = (usuarioMap['nombre'] ?? '')
-                    .toString()
-                    .trim();
+                      final usuarioMap =
+                          (m['usuario'] as Map<String, dynamic>?) ?? {};
+                      final nombreOtro = (usuarioMap['nombre'] ?? '')
+                          .toString()
+                          .trim();
 
-                String etiqueta;
-                if (esMio) {
-                  final partes = <String>['Yo'];
-                  if (contexto?.consorcioNombre != null) {
-                    partes.add(contexto!.consorcioNombre);
-                  }
-                  partes.add(fechaStr);
-                  etiqueta = partes.join(' - ');
-                } else {
-                  final partes = <String>[];
-                  if (unidadCodigo.isNotEmpty) {
-                    partes.add('Unidad $unidadCodigo');
-                  }
-                  if (nombreOtro.isNotEmpty) {
-                    partes.add(nombreOtro);
-                  } else {
-                    partes.add('Vecino');
-                  }
-                  partes.add(fechaStr);
-                  etiqueta = partes.join(' - ');
-                }
+                      String etiqueta;
+                      if (esMio) {
+                        final partes = <String>['Yo'];
+                        if (contexto?.consorcioNombre != null) {
+                          partes.add(contexto!.consorcioNombre);
+                        }
+                        partes.add(fechaStr);
+                        etiqueta = partes.join(' - ');
+                      } else {
+                        final partes = <String>[];
+                        if (unidadCodigo.isNotEmpty) {
+                          partes.add('Unidad $unidadCodigo');
+                        }
+                        if (nombreOtro.isNotEmpty) {
+                          partes.add(nombreOtro);
+                        } else {
+                          partes.add('Vecino');
+                        }
+                        partes.add(fechaStr);
+                        etiqueta = partes.join(' - ');
+                      }
 
-                return Align(
-                  alignment: esMio
-                      ? Alignment.centerRight
-                      : Alignment.centerLeft,
-                  child: InkWell(
-                    onLongPress: () => _onLongPressMensaje(m, esMio),
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(vertical: 4),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      constraints: BoxConstraints(
-                        maxWidth: MediaQuery.of(context).size.width * 0.75,
-                      ),
-                      decoration: BoxDecoration(
-                        color: esMio
-                            ? const Color(0xFF2E7D32).withValues(alpha: 0.15)
-                            : Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(m['texto']?.toString() ?? ''),
-                          const SizedBox(height: 4),
-                          Text(
-                            etiqueta,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              fontSize: 10,
+                      return Align(
+                        alignment: esMio
+                            ? Alignment.centerRight
+                            : Alignment.centerLeft,
+                        child: InkWell(
+                          onLongPress: () => _onLongPressMensaje(m, esMio),
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            constraints: BoxConstraints(
+                              maxWidth:
+                                  MediaQuery.of(context).size.width * 0.75,
+                            ),
+                            decoration: BoxDecoration(
+                              color: esMio
+                                  ? const Color(0xFF2E7D32)
+                                      .withValues(alpha: 0.15)
+                                  : Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(m['texto']?.toString() ?? ''),
+                                const SizedBox(height: 4),
+                                Text(
+                                  etiqueta,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
           SafeArea(
             top: false,

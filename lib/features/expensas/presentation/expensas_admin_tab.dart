@@ -87,7 +87,7 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
       initialDate: inicial,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
-      helpText: 'SeleccionÃ¡ periodo DESDE',
+      helpText: 'Seleccioná periodo DESDE',
     );
 
     if (date != null) {
@@ -107,7 +107,7 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
       initialDate: inicial,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
-      helpText: 'SeleccionÃ¡ periodo HASTA',
+      helpText: 'Seleccioná periodo HASTA',
     );
 
     if (date != null) {
@@ -212,7 +212,7 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
                         itemBuilder: (context, index) {
                           final e = expensas[index];
 
-                          // Buscar datos de la unidad para mostrar su cÃ³digo.
+                          // Buscar datos de la unidad para mostrar su código.
                           final unidadMap = _unidades.firstWhere(
                             (u) => u['id'] == e.unidadId,
                             orElse: () => <String, dynamic>{},

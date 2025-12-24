@@ -133,7 +133,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
         body: const Center(
           child: Text(
             'No hay contexto seleccionado.\n'
-            'Volvé a la pantalla anterior.'
+            'Volvé a la pantalla anterior.',
             textAlign: TextAlign.center,
           ),
         ),
