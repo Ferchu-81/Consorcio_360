@@ -68,6 +68,48 @@ class _ReclamoEmptyHint extends StatelessWidget {
   }
 }
 
+class _InfoChip extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _InfoChip({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '$label: ',
+            style: TextStyle(
+              fontSize: 11,
+              color: Colors.grey.shade700,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class ReclamoDetailScreen extends StatefulWidget {
   final String reclamoId;
 
@@ -810,6 +852,7 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
     final userId = Supabase.instance.client.auth.currentUser?.id;
     final contexto = context.watch<CurrentContextNotifier>().current;
     final esAdmin = contexto?.rol == 'ADMIN_CONSORCIO';
+    final estadosUnicos = _estadosPosibles.toSet().toList();
 
     if (_isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -840,6 +883,10 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
     final prioridadLabel = formatEnumLabel(
       _reclamo!['prioridad']?.toString() ?? '',
     );
+    final tipoRaw = (_reclamo!['tipo'] ?? '').toString().trim();
+    final tipoLabel = tipoRaw.isEmpty ? '-' : formatEnumLabel(tipoRaw);
+    final unidadLabel = unidadCodigo.isEmpty ? '-' : unidadCodigo;
+    final prioridadValue = prioridadLabel.isEmpty ? '-' : prioridadLabel;
 
     return Scaffold(
       appBar: AppBar(
@@ -866,34 +913,33 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
                 children: [
                   Text(
                     _reclamo!['titulo']?.toString() ?? '(Sin titulo)',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
-                  if (_reclamo!['tipo'] != null)
-                    Text(
-                      'Tipo: ${_reclamo!['tipo']}',
-                      style: theme.textTheme.bodySmall,
-                    ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   Row(
                     children: [
-                      if (unidadCodigo.isNotEmpty)
-                        Chip(
-                          label: Text('Unidad $unidadCodigo'),
-                          visualDensity: VisualDensity.compact,
-                        ),
-                      const SizedBox(width: 6),
-                      Chip(
-                        label: Text('Prioridad: $prioridadLabel'),
-                        visualDensity: VisualDensity.compact,
+                      _InfoChip(
+                        label: 'Tipo',
+                        value: tipoLabel,
+                      ),
+                      const SizedBox(width: 8),
+                      _InfoChip(
+                        label: 'Unidad',
+                        value: unidadLabel,
+                      ),
+                      const SizedBox(width: 8),
+                      _InfoChip(
+                        label: 'Prioridad',
+                        value: prioridadValue,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -905,11 +951,11 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
                             Text('Estado:', style: theme.textTheme.bodySmall),
                             const SizedBox(width: 4),
                             DropdownButton<String>(
-                              value: _estadosPosibles.contains(estadoActual)
+                              value: estadosUnicos.contains(estadoActual)
                                   ? estadoActual
                                   : null,
                               underline: const SizedBox.shrink(),
-                              items: _estadosPosibles
+                              items: estadosUnicos
                                   .map(
                                     (e) => DropdownMenuItem(
                                       value: e,

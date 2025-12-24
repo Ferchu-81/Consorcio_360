@@ -1,5 +1,5 @@
-import 'package:consorcio_360/core/state/current_context_notifier.dart';
 import 'package:consorcio_360/core/services/context_storage.dart';
+import 'package:consorcio_360/core/state/current_context_notifier.dart';
 import 'package:consorcio_360/data/models/usuario_contexto.dart';
 import 'package:consorcio_360/features/auth/presentation/login_screen.dart';
 import 'package:consorcio_360/features/reclamos/presentation/main_home_screen.dart';
@@ -181,9 +181,7 @@ class _ContextSelectionScreenState extends State<ContextSelectionScreen> {
                     if (!mounted) return;
                     // 3) Navegamos al home principal
                     navigator.pushReplacement(
-                      MaterialPageRoute(
-                        builder: (_) => const MainHomeScreen(),
-                      ),
+                      MaterialPageRoute(builder: (_) => const MainHomeScreen()),
                     );
                   },
                 ),

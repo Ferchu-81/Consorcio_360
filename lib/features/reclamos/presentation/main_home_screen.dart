@@ -4,6 +4,7 @@ import 'package:consorcio_360/features/context/presentation/context_selection_sc
 import 'package:consorcio_360/features/expensas/presentation/expensas_tab.dart';
 import 'package:consorcio_360/features/home/presentation/dashboard_tab.dart';
 import 'package:consorcio_360/features/pagos/presentation/pagos_tab.dart';
+import 'package:consorcio_360/features/settings/presentation/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -177,6 +178,14 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
+            },
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: ActionChip(
