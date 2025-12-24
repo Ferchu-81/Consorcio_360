@@ -270,6 +270,8 @@ class _DashboardTabState extends State<DashboardTab> {
               _buildExpensasCard(theme),
               const SizedBox(height: 16),
               _buildReclamosCard(theme),
+              const SizedBox(height: 16),
+              _buildBasesLegalesCard(context),
             ],
           ),
         ),
@@ -489,6 +491,22 @@ class _DashboardTabState extends State<DashboardTab> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildBasesLegalesCard(BuildContext context) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      elevation: 1,
+      child: ListTile(
+        leading: const Icon(Icons.gavel_outlined),
+        title: const Text('Bases legales'),
+        subtitle: const Text('Reglamento de consorcio y leyes vigentes'),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () {
+          Navigator.of(context).pushNamed('/bases-legales');
+        },
       ),
     );
   }
