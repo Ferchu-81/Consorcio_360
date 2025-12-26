@@ -1,4 +1,5 @@
 ﻿import 'package:consorcio_360/core/services/context_storage.dart';
+import 'package:consorcio_360/core/i18n/role_label.dart';
 import 'package:consorcio_360/data/models/usuario_contexto.dart';
 import 'package:consorcio_360/features/context/presentation/context_selection_screen.dart';
 import 'package:consorcio_360/features/reclamos/presentation/main_home_screen.dart';
@@ -51,7 +52,7 @@ class DashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            '${contexto.rolLegible} · Unidad ${contexto.unidadCodigo} - ${contexto.consorcioNombre}',
+            '${roleLabel(context, contexto.rol)} · Unidad ${contexto.unidadCodigo} - ${contexto.consorcioNombre}',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 16),
@@ -95,4 +96,8 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 }
+
+
+
+
 

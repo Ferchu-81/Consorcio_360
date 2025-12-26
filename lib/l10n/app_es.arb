@@ -1,0 +1,15 @@
+﻿{
+  "@@locale": "es",
+  "roleAdmin": "Administrador",
+  "roleOwner": "Propietario",
+  "roleTenant": "Inquilino",
+  "roleOccupant": "Ocupante",
+  "roleOwnerOrTenant": "Propietario / Inquilino",
+  "isPrimaryOwner": "Titular",
+  "occupiesUnit": "Ocupa",
+  "cfgAmenitiesOwnerNonOccupantTitle": "Propietario no ocupante: acceso a amenities (uso y reserva)",
+  "cfgAmenitiesOwnerNonOccupantSubtitle": "Permite usar y reservar amenities aunque no viva en la unidad.",
+  "cfgOwnerVoteWithoutOccupyingTitle": "Voto del propietario sin ocupar",
+  "cfgOwnerVoteWithoutOccupyingSubtitle": "Permite votar al propietario aunque haya un ocupante en la unidad.",
+  "unit": "Unidad"
+}

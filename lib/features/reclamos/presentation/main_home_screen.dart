@@ -1,4 +1,5 @@
-import 'package:consorcio_360/core/state/current_context_notifier.dart';
+﻿import 'package:consorcio_360/core/state/current_context_notifier.dart';
+import 'package:consorcio_360/core/i18n/role_label.dart';
 import 'package:consorcio_360/features/auth/presentation/login_screen.dart';
 import 'package:consorcio_360/features/context/presentation/context_selection_screen.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensas_tab.dart';
@@ -63,9 +64,9 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
     final shouldLogout = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Cerrar sesión'),
+            title: const Text('Cerrar sesiÃ³n'),
             content: const Text(
-              '¿Querés cerrar la sesión actual?\n'
+              'Â¿QuerÃ©s cerrar la sesiÃ³n actual?\n'
               'Vas a tener que ingresar de nuevo para continuar.',
             ),
             actions: [
@@ -75,7 +76,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
               ),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Cerrar sesión'),
+                child: const Text('Cerrar sesiÃ³n'),
               ),
             ],
           ),
@@ -102,8 +103,8 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
           builder: (context) => AlertDialog(
             title: const Text('Cambiar de rol / unidad'),
             content: const Text(
-              '¿Querés cambiar de consorcio, unidad o rol?\n'
-              'Se cerrará el contexto actual.'
+              'Â¿QuerÃ©s cambiar de consorcio, unidad o rol?\n'
+              'Se cerrarÃ¡ el contexto actual.'
             ),
             actions: [
               TextButton(
@@ -134,7 +135,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
         body: const Center(
           child: Text(
             'No hay contexto seleccionado.\n'
-            'Volvé a la pantalla anterior.',
+            'VolvÃ© a la pantalla anterior.',
             textAlign: TextAlign.center,
           ),
         ),
@@ -143,7 +144,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
 
     final bool esAdmin = contexto.rol == 'ADMIN_CONSORCIO';
 
-    // Selección de tab
+    // SelecciÃ³n de tab
     late final Widget body;
     if (_selectedIndex == 0) {
       body = DashboardTab(contexto: contexto);
@@ -189,14 +190,14 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: ActionChip(
-              label: Text(contexto.rolLegible),
+              label: Text(roleLabel(context, contexto.rol)),
               avatar: const Icon(Icons.person_outline, size: 18),
               visualDensity: VisualDensity.compact,
               onPressed: _confirmChangeContext,
             ),
           ),
           IconButton(
-            tooltip: 'Cerrar sesión',
+            tooltip: 'Cerrar sesiÃ³n',
             icon: const Icon(Icons.logout),
             onPressed: _confirmLogout,
           ),
@@ -233,3 +234,6 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
     );
   }
 }
+
+
+

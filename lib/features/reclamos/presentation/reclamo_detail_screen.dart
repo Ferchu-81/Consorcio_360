@@ -1,7 +1,9 @@
-import 'dart:typed_data';
+﻿import 'dart:typed_data';
 
 import 'package:consorcio_360/core/state/current_context_notifier.dart';
 import 'package:consorcio_360/data/models/usuario_contexto.dart';
+import 'package:consorcio_360/core/i18n/role_label.dart';
+import 'package:consorcio_360/gen_l10n/app_localizations.dart';
 import 'package:consorcio_360/features/reclamos/presentation/reclamo_adjuntos_screen.dart';
 import 'package:consorcio_360/features/reclamos/presentation/reclamos_utils.dart';
 import 'package:file_picker/file_picker.dart';
@@ -35,7 +37,7 @@ class _ReclamoEmptyHint extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: const [
               Text(
-                '¿Cómo funciona este reclamo?',
+                'Â¿CÃ³mo funciona este reclamo?',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -43,7 +45,7 @@ class _ReclamoEmptyHint extends StatelessWidget {
               ),
               SizedBox(height: 6),
               Text(
-                'Usá este espacio como un chat para comunicarte con la administración. Cada mensaje queda registrado como parte del expediente del reclamo y no se puede editar ni borrar.',
+                'UsÃ¡ este espacio como un chat para comunicarte con la administraciÃ³n. Cada mensaje queda registrado como parte del expediente del reclamo y no se puede editar ni borrar.',
                 style: TextStyle(
                   fontSize: 12,
                   height: 1.3,
@@ -52,7 +54,7 @@ class _ReclamoEmptyHint extends StatelessWidget {
               ),
               SizedBox(height: 4),
               Text(
-                'Podés adjuntar fotos, describir mejor el problema y hacer seguimiento '
+                'PodÃ©s adjuntar fotos, describir mejor el problema y hacer seguimiento '
                 'de las respuestas.',
                 style: TextStyle(
                   fontSize: 12,
@@ -663,31 +665,32 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
     final esMio = mensaje['usuario_id'] == currentUserId;
     final soyAdmin = contexto.rol == 'ADMIN_CONSORCIO';
+    final l10n = AppLocalizations.of(context);
 
     final nombre = (usuario['nombre'] ?? '').toString().trim();
     final nombreLabel = nombre.isEmpty ? 'Usuario' : nombre;
 
     if (soyAdmin) {
       if (esMio) {
-        return 'Administrador - $nombreLabel';
+        return '${l10n.roleAdmin} - $nombreLabel';
       } else {
         final unidadText = unidadCodigo.isEmpty ? '' : 'Unidad $unidadCodigo';
         if (unidadText.isEmpty) {
-          return 'Propietario / Morador - $nombreLabel';
+          return 'Vecino - $nombreLabel';
         }
         return '$nombreLabel - $unidadText';
       }
     } else {
       if (esMio) {
-        final rolLabel = contexto.rolLegible;
+        final rolLabelText = roleLabel(context, contexto.rol);
         final unidadText = unidadCodigo.isEmpty ? '' : 'Unidad $unidadCodigo';
-        final partes = <String>[rolLabel, nombreLabel];
+        final partes = <String>[rolLabelText, nombreLabel];
         if (unidadText.isNotEmpty) {
           partes.add(unidadText);
         }
         return partes.join(' - ');
       } else {
-        return 'Administrador - $nombreLabel';
+        return '${l10n.roleAdmin} - $nombreLabel';
       }
     }
   }
@@ -1154,3 +1157,6 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
     );
   }
 }
+
+
+

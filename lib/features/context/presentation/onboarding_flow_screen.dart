@@ -183,7 +183,7 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
       if (!_rolMorador && !_rolPropietario) {
         setState(() {
           _errorMessage =
-              'Selecciona al menos un rol (Morador y/o Propietario).';
+              'Selecciona al menos un rol (Propietario) o marcá que ocupas la unidad.';
           _isLoading = false;
         });
         return;
@@ -285,6 +285,13 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
         'unidad_id': unidadRealId,
         'rol': rolUnidad,
         'es_titular': esTitular,
+        // Nuevo modelo (producción): un único vínculo por unidad.
+        // - PROPIETARIO puede ser ocupa=true/false.
+        // - MORADOR/OCUPANTE ocupa=true.
+        'ocupa': _rolPropietario ? _rolMorador : true,
+        // Para MORADOR, por defecto lo tratamos como inquilino (configurable luego).
+        'es_inquilino': !_rolPropietario,
+        'activo': true,
       });
 
       // 3.b) Si es consorcio nuevo, crear unidad GLOBAL para administracion
@@ -673,7 +680,7 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
                 _rolMorador = value ?? false;
               });
             },
-            title: const Text('Morador'),
+            title: const Text('Ocupa la unidad'),
             subtitle: const Text('Vivis o usas diariamente esta unidad.'),
           ),
           CheckboxListTile(

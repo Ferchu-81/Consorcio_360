@@ -1,9 +1,11 @@
-import 'package:consorcio_360/core/services/context_storage.dart';
+﻿import 'package:consorcio_360/core/services/context_storage.dart';
 import 'package:consorcio_360/core/state/current_context_notifier.dart';
+import 'package:consorcio_360/core/i18n/role_label.dart';
 import 'package:consorcio_360/data/models/usuario_contexto.dart';
 import 'package:consorcio_360/features/auth/presentation/login_screen.dart';
 import 'package:consorcio_360/features/reclamos/presentation/main_home_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:consorcio_360/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -37,6 +39,9 @@ class _ContextSelectionScreenState extends State<ContextSelectionScreen> {
         id,
         rol,
         es_titular,
+        ocupa,
+        es_inquilino,
+        activo,
         unidades (
           id,
           codigo,
@@ -83,6 +88,9 @@ class _ContextSelectionScreenState extends State<ContextSelectionScreen> {
         nombre: nombreCompleto.isNotEmpty ? nombreCompleto : email,
         rol: row['rol'] as String,
         esTitular: row['es_titular'] as bool? ?? false,
+        ocupa: row['ocupa'] as bool? ?? false,
+        esInquilino: row['es_inquilino'] as bool? ?? true,
+        activo: row['activo'] as bool? ?? true,
       );
     }).toList();
   }
@@ -100,6 +108,7 @@ class _ContextSelectionScreenState extends State<ContextSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -164,19 +173,28 @@ class _ContextSelectionScreenState extends State<ContextSelectionScreen> {
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                   subtitle: Text(
-                    'Unidad ${ctx.unidadCodigo} - ${ctx.rolLegible}',
+                    '${l10n.unit} ${ctx.unidadCodigo} - ${roleLabel(context, ctx.rol)}',
                   ),
-                  trailing: ctx.esTitular
-                      ? const Chip(
-                          label: Text('Titular'),
+                  trailing: Wrap(
+                    spacing: 8,
+                    children: [
+                      if (ctx.esTitular)
+                        Chip(
+                          label: Text(l10n.isPrimaryOwner),
                           visualDensity: VisualDensity.compact,
-                        )
-                      : null,
+                        ),
+                      if (ctx.ocupa)
+                        Chip(
+                          label: Text(l10n.occupiesUnit),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                    ],
+                  ),
                   onTap: () async {
                     final navigator = Navigator.of(context);
                     // 1) Guardamos el contexto globalmente
                     context.read<CurrentContextNotifier>().setContext(ctx);
-                    // 2) Persistimos la elección
+                    // 2) Persistimos la elecciÃ³n
                     await ContextStorage.guardarContexto(ctx);
                     if (!mounted) return;
                     // 3) Navegamos al home principal
@@ -193,3 +211,11 @@ class _ContextSelectionScreenState extends State<ContextSelectionScreen> {
     );
   }
 }
+
+
+
+
+
+
+
+

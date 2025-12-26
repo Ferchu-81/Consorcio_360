@@ -1,0 +1,15 @@
+﻿{
+  "@@locale": "pt",
+  "roleAdmin": "Síndico",
+  "roleOwner": "Proprietário",
+  "roleTenant": "Inquilino",
+  "roleOccupant": "Morador",
+  "roleOwnerOrTenant": "Proprietário / Inquilino",
+  "isPrimaryOwner": "Titular",
+  "occupiesUnit": "Ocupa",
+  "cfgAmenitiesOwnerNonOccupantTitle": "Proprietário não residente: acesso às áreas comuns (uso e reserva)",
+  "cfgAmenitiesOwnerNonOccupantSubtitle": "Permite usar e reservar áreas comuns mesmo sem morar na unidade.",
+  "cfgOwnerVoteWithoutOccupyingTitle": "Voto do proprietário sem residir",
+  "cfgOwnerVoteWithoutOccupyingSubtitle": "Permite que o proprietário vote mesmo com um residente na unidade.",
+  "unit": "Unidade"
+}

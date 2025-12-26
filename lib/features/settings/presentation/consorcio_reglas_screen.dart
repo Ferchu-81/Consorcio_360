@@ -1,5 +1,6 @@
-import 'package:consorcio_360/features/settings/domain/consorcio_config.dart';
+﻿import 'package:consorcio_360/features/settings/domain/consorcio_config.dart';
 import 'package:flutter/material.dart';
+import 'package:consorcio_360/gen_l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ConsorcioReglasScreen extends StatefulWidget {
@@ -102,6 +103,35 @@ class _ConsorcioReglasScreenState extends State<ConsorcioReglasScreen> {
     }
   }
 
+  Future<void> _updateAmenityOwnerNonOccupant(bool enabled) async {
+    final config = _config;
+    if (config == null) return;
+
+    setState(() => _saving = true);
+    try {
+      await _supabase.from('consorcio_config').update({
+        'permitir_reservas_prop_no_ocupante': enabled,
+        'permitir_uso_amenities_prop_no_ocupante': enabled,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('consorcio_id', widget.consorcioId);
+
+      setState(() {
+        _config = config.copyWith(
+          permitirAmenitiesPropNoOcupante: enabled,
+        );
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al guardar: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _saving = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -136,9 +166,11 @@ class _ConsorcioReglasScreenState extends State<ConsorcioReglasScreen> {
     final config = _config;
     if (config == null) {
       return const Scaffold(
-        body: Center(child: Text('No hay configuración disponible.')),
+        body: Center(child: Text('No hay configuracion disponible.')),
       );
     }
+
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -148,49 +180,17 @@ class _ConsorcioReglasScreenState extends State<ConsorcioReglasScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           SwitchListTile(
-            title: const Text(
-              'Permitir reservas a propietario no ocupante',
-            ),
-            subtitle: const Text(
-              'Define si un propietario sin ocupación puede reservar.',
-            ),
-            value: config.permitirReservasPropNoOcupante,
+            title: Text(l10n.cfgAmenitiesOwnerNonOccupantTitle),
+            subtitle: Text(l10n.cfgAmenitiesOwnerNonOccupantSubtitle),
+            value: config.permitirAmenitiesPropNoOcupante,
             onChanged: _saving
                 ? null
-                : (value) => _toggleFlag(
-                      value: value,
-                      field: 'permitir_reservas_prop_no_ocupante',
-                      apply: (c) =>
-                          c.copyWith(permitirReservasPropNoOcupante: value),
-                    ),
+                : (value) => _updateAmenityOwnerNonOccupant(value),
           ),
           const Divider(),
           SwitchListTile(
-            title: const Text(
-              'Permitir uso de amenities a propietario no ocupante',
-            ),
-            subtitle: const Text(
-              'Habilita el uso de amenities sin ocupación.',
-            ),
-            value: config.permitirUsoAmenitiesPropNoOcupante,
-            onChanged: _saving
-                ? null
-                : (value) => _toggleFlag(
-                      value: value,
-                      field: 'permitir_uso_amenities_prop_no_ocupante',
-                      apply: (c) => c.copyWith(
-                        permitirUsoAmenitiesPropNoOcupante: value,
-                      ),
-                    ),
-          ),
-          const Divider(),
-          SwitchListTile(
-            title: const Text(
-              'Propietario puede votar sin ocupar',
-            ),
-            subtitle: const Text(
-              'Habilita la votación sin ocupación activa.',
-            ),
+            title: Text(l10n.cfgOwnerVoteWithoutOccupyingTitle),
+            subtitle: Text(l10n.cfgOwnerVoteWithoutOccupyingSubtitle),
             value: config.propietarioPuedeVotarSinOcupar,
             onChanged: _saving
                 ? null
@@ -206,3 +206,5 @@ class _ConsorcioReglasScreenState extends State<ConsorcioReglasScreen> {
     );
   }
 }
+
+

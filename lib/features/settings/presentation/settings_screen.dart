@@ -1,4 +1,5 @@
 ﻿import 'package:consorcio_360/bases_legales/ui/bases_legales_screen.dart';
+import 'package:consorcio_360/core/i18n/role_label.dart';
 import 'package:consorcio_360/core/state/current_context_notifier.dart';
 import 'package:consorcio_360/features/settings/presentation/consorcio_reglas_screen.dart';
 import 'package:flutter/material.dart';
@@ -45,7 +46,7 @@ class SettingsScreen extends StatelessWidget {
           _ContextHeader(
             consorcio: ctx.consorcioNombre,
             unidad: ctx.unidadCodigo,
-            rol: ctx.rolLegible,
+            rol: roleLabel(context, ctx.rol),
           ),
           const SizedBox(height: 16),
           const _SectionTitle('Cuenta'),
@@ -225,4 +226,7 @@ class _SectionTitle extends StatelessWidget {
     );
   }
 }
+
+
+
 

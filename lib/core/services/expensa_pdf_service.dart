@@ -72,7 +72,7 @@ class ExpensaPdfService {
             ),
             pw.SizedBox(height: 4),
             pw.Text('Unidad: $unidadCodigo'),
-            pw.Text('Titular / Morador: $moradorNombre'),
+            pw.Text('Titular / Ocupante: $moradorNombre'),
             pw.SizedBox(height: 12),
             pw.Text(
               'Detalle de expensas',
@@ -187,7 +187,7 @@ class ExpensaPdfService {
             pw.Text('Vencimiento: ${expensa.fechaVencFormatted}'),
             pw.SizedBox(height: 10),
             pw.Text('Unidad: $unidadCodigo'),
-            pw.Text('Titular / Morador: $moradorNombre'),
+            pw.Text('Titular / Ocupante: $moradorNombre'),
             pw.SizedBox(height: 12),
             pw.TableHelper.fromTextArray(
               border: pw.TableBorder.all(width: 0.5),

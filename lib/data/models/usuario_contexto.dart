@@ -1,3 +1,6 @@
+import 'package:consorcio_360/core/i18n/actor_role.dart';
+import 'package:flutter/widgets.dart';
+
 class UsuarioContexto {
   final String usuarioUnidadId;
   final String consorcioId;
@@ -5,8 +8,24 @@ class UsuarioContexto {
   final String unidadId;
   final String unidadCodigo;
   final String? nombre;
-  final String rol; // ADMIN_CONSORCIO / PROPIETARIO / MORADOR
+
+  /// Códigos DB: ADMIN_CONSORCIO / PROPIETARIO / MORADOR
+  final String rol;
+
+  /// Para PROPIETARIO: indica si es el titular registral (o principal).
   final bool esTitular;
+
+  /// Indica si la persona efectivamente ocupa la unidad.
+  /// - PROPIETARIO puede ser ocupa=true o false.
+  /// - MORADOR/OCUPANTE normalmente ocupa=true.
+  final bool ocupa;
+
+  /// Para rol MORADOR/OCUPANTE: por defecto es inquilino (true).
+  /// Si no (comodato, familiar, etc.), esInquilino=false y en UI se muestra "Ocupante".
+  final bool esInquilino;
+
+  /// Soft-delete / vigencia.
+  final bool activo;
 
   UsuarioContexto({
     required this.usuarioUnidadId,
@@ -17,8 +36,23 @@ class UsuarioContexto {
     this.nombre,
     required this.rol,
     required this.esTitular,
+    required this.ocupa,
+    required this.esInquilino,
+    required this.activo,
   });
 
+  ActorRole get actorRole => actorRoleFromDb(rol);
+
+  /// Label i18n del rol.
+  String rolLabel(BuildContext context) {
+    return actorRole.label(context, esInquilino: esInquilino);
+  }
+
+  /// Solo para logs / debugging (sin i18n).
+  String get descripcionLarga =>
+      '$consorcioNombre - Unidad $unidadCodigo - Rol $rol';
+
+  @Deprecated('Usá rolLabel(context) para i18n.')
   String get rolLegible {
     switch (rol) {
       case 'ADMIN_CONSORCIO':
@@ -27,14 +61,9 @@ class UsuarioContexto {
         return 'Propietario';
       case 'MORADOR':
       default:
-        return 'Morador';
+        return esInquilino ? 'Inquilino' : 'Ocupante';
     }
   }
-
-  String get descripcionLarga =>
-      '$consorcioNombre - Unidad $unidadCodigo - $rolLegible';
-
-  String get rolDescripcion => rolLegible;
 
   Map<String, dynamic> toJson() {
     return {
@@ -46,6 +75,9 @@ class UsuarioContexto {
       'nombre': nombre,
       'rol': rol,
       'es_titular': esTitular,
+      'ocupa': ocupa,
+      'es_inquilino': esInquilino,
+      'activo': activo,
     };
   }
 
@@ -59,6 +91,9 @@ class UsuarioContexto {
       nombre: json['nombre'] as String?,
       rol: json['rol'] as String,
       esTitular: json['es_titular'] as bool? ?? false,
+      ocupa: json['ocupa'] as bool? ?? false,
+      esInquilino: json['es_inquilino'] as bool? ?? true,
+      activo: json['activo'] as bool? ?? true,
     );
   }
 }
