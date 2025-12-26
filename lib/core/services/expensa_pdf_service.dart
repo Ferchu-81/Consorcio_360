@@ -126,7 +126,7 @@ class ExpensaPdfService {
             pw.SizedBox(height: 4),
             pw.Text('Fecha de pago: ${pago.fechaFormatted}'),
             pw.Text('Importe: ${_fmt(pago.importe)}'),
-            pw.Text('Medio de pago: ${pago.medioPago}'),
+            pw.Text('Medio de pago: ${_displayEnum(pago.medioPago)}'),
             if ((pago.observaciones ?? '').trim().isNotEmpty)
               pw.Text('Observaciones: ${pago.observaciones}'),
             pw.Spacer(),
@@ -226,4 +226,9 @@ class ExpensaPdfService {
 
   static String _fmt(double valor) =>
       '\$ ${valor.toStringAsFixed(2).replaceAll('.', ',')}';
+
+  static String _displayEnum(String value) {
+    if (value.isEmpty) return value;
+    return value.replaceAll('_', ' ');
+  }
 }

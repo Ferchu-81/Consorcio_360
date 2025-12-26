@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'notification_settings_screen.dart';
+import 'notification_preferences_screen.dart';
 import 'profile_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -61,10 +61,10 @@ class SettingsScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.notifications_outlined),
             title: const Text('Notificaciones'),
-            subtitle: const Text('Preferencias por rol/contexto'),
+            subtitle: const Text('Preferencias'),
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (_) => const NotificationSettingsScreen(),
+                builder: (_) => const NotificationPreferencesScreen(),
               ),
             ),
           ),

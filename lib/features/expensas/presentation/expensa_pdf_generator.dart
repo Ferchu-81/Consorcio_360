@@ -51,7 +51,7 @@ Future<Uint8List> buildExpensaFacturaPdfA4({
                         pw.Text('CUIT: $consorcioCuit'),
                       pw.SizedBox(height: 8),
                       pw.Text('Unidad: $unidadCodigo'),
-                      pw.Text('Período: $periodoStr'),
+                      pw.Text('Periodo: $periodoStr'),
                     ],
                   ),
                 ),
@@ -155,7 +155,7 @@ Future<Uint8List> buildExpensaFacturaPdfA4({
             pw.SizedBox(height: 4),
             pago == null
                 ? pw.Text(
-                    'Esta boleta puede ser utilizada para pago presencial en la administración '
+                    'Esta boleta puede ser utilizada para pago presencial en la administracion '
                     'o por los medios acordados (transferencia, etc.).',
                     style: const pw.TextStyle(fontSize: 10),
                   )

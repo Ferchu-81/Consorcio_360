@@ -4,8 +4,10 @@ import 'package:consorcio_360/features/auth/presentation/login_screen.dart';
 import 'package:consorcio_360/features/context/presentation/context_selection_screen.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensas_tab.dart';
 import 'package:consorcio_360/features/home/presentation/dashboard_tab.dart';
+import 'package:consorcio_360/features/notifications/presentation/notifications_screen.dart';
 import 'package:consorcio_360/features/pagos/presentation/pagos_tab.dart';
 import 'package:consorcio_360/features/settings/presentation/settings_screen.dart';
+import 'package:consorcio_360/gen_l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -26,6 +28,14 @@ class MainHomeScreen extends StatefulWidget {
 
 class _MainHomeScreenState extends State<MainHomeScreen> {
   int _selectedIndex = 0;
+  int _unreadCount = 0;
+  bool _loadingUnread = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUnreadCount();
+  }
 
   void _onTabTapped(int index) {
     setState(() {
@@ -124,6 +134,92 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
     await _changeContext();
   }
 
+  Future<void> _openNotifications() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+    );
+    if (!mounted) return;
+    await _loadUnreadCount();
+  }
+
+  Future<void> _loadUnreadCount() async {
+    if (_loadingUnread) return;
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) {
+      if (mounted) {
+        setState(() {
+          _unreadCount = 0;
+        });
+      }
+      return;
+    }
+
+    setState(() {
+      _loadingUnread = true;
+    });
+
+    try {
+      final unread = await Supabase.instance.client
+          .from('notificaciones')
+          .count()
+          .eq('usuario_id', user.id)
+          .isFilter('read_at', null);
+
+      if (mounted) {
+        setState(() {
+          _unreadCount = unread;
+        });
+      }
+    } catch (_) {
+      // Mantener el ultimo conteo en caso de error.
+    } finally {
+      if (mounted) {
+        setState(() {
+          _loadingUnread = false;
+        });
+      }
+    }
+  }
+
+  Widget _buildNotificationsAction() {
+    final count = _unreadCount;
+    final label = count > 99 ? '99+' : '$count';
+    final l10n = AppLocalizations.of(context);
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        IconButton(
+          tooltip: l10n.notificationsTitle,
+          icon: const Icon(Icons.notifications_outlined),
+          onPressed: _openNotifications,
+        ),
+        if (count > 0)
+          Positioned(
+            right: 6,
+            top: 6,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              constraints: const BoxConstraints(minWidth: 18),
+              decoration: BoxDecoration(
+                color: Colors.redAccent,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                label,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final current = context.watch<CurrentContextNotifier>();
@@ -179,6 +275,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
           ],
         ),
         actions: [
+          _buildNotificationsAction(),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {

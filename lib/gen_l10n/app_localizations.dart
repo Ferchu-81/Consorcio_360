@@ -100,6 +100,198 @@ abstract class AppLocalizations {
     Locale('pt'),
   ];
 
+  /// No description provided for @roleAdminConsorcio.
+  ///
+  /// In es, this message translates to:
+  /// **'Administrador'**
+  String get roleAdminConsorcio;
+
+  /// No description provided for @rolePropietario.
+  ///
+  /// In es, this message translates to:
+  /// **'Propietario'**
+  String get rolePropietario;
+
+  /// No description provided for @roleOcupanteDefault.
+  ///
+  /// In es, this message translates to:
+  /// **'Inquilino'**
+  String get roleOcupanteDefault;
+
+  /// No description provided for @notificationsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Notificaciones'**
+  String get notificationsTitle;
+
+  /// No description provided for @notificationsLoadError.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al cargar notificaciones.'**
+  String get notificationsLoadError;
+
+  /// No description provided for @notificationsRetry.
+  ///
+  /// In es, this message translates to:
+  /// **'Reintentar'**
+  String get notificationsRetry;
+
+  /// No description provided for @notificationsEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay notificaciones por ahora.'**
+  String get notificationsEmpty;
+
+  /// No description provided for @notificationsNoDestination.
+  ///
+  /// In es, this message translates to:
+  /// **'Notificacion sin destino.'**
+  String get notificationsNoDestination;
+
+  /// No description provided for @notificationsMissingReclamoId.
+  ///
+  /// In es, this message translates to:
+  /// **'Reclamo sin id.'**
+  String get notificationsMissingReclamoId;
+
+  /// No description provided for @notificationsMissingExpensaId.
+  ///
+  /// In es, this message translates to:
+  /// **'Expensa sin id.'**
+  String get notificationsMissingExpensaId;
+
+  /// No description provided for @notificationsExpensaNotFound.
+  ///
+  /// In es, this message translates to:
+  /// **'Expensa no encontrada.'**
+  String get notificationsExpensaNotFound;
+
+  /// No description provided for @notificationsReservaUnavailable.
+  ///
+  /// In es, this message translates to:
+  /// **'Reservas no disponible.'**
+  String get notificationsReservaUnavailable;
+
+  /// No description provided for @notificationsPreferencesTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Preferencias'**
+  String get notificationsPreferencesTitle;
+
+  /// No description provided for @notificationsPreferencesRoleTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Este rol'**
+  String get notificationsPreferencesRoleTitle;
+
+  /// No description provided for @notificationsPreferencesRoleHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Preferencias para el rol actual.'**
+  String get notificationsPreferencesRoleHint;
+
+  /// No description provided for @notificationsPreferencesEventsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Eventos'**
+  String get notificationsPreferencesEventsTitle;
+
+  /// No description provided for @notificationsPreferencesApplyAllTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Aplicar a todos mis roles'**
+  String get notificationsPreferencesApplyAllTitle;
+
+  /// No description provided for @notificationsPreferencesApplyAllSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Copia estas preferencias a mis otros roles en este consorcio.'**
+  String get notificationsPreferencesApplyAllSubtitle;
+
+  /// No description provided for @notificationsPreferencesSave.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar'**
+  String get notificationsPreferencesSave;
+
+  /// No description provided for @notificationsPreferencesSaved.
+  ///
+  /// In es, this message translates to:
+  /// **'Preferencias guardadas.'**
+  String get notificationsPreferencesSaved;
+
+  /// No description provided for @notificationsPreferencesLoadError.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al cargar preferencias.'**
+  String get notificationsPreferencesLoadError;
+
+  /// No description provided for @notificationsPreferencesRetry.
+  ///
+  /// In es, this message translates to:
+  /// **'Reintentar'**
+  String get notificationsPreferencesRetry;
+
+  /// No description provided for @notificationsPreferencesNoContext.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay un contexto seleccionado para configurar notificaciones.'**
+  String get notificationsPreferencesNoContext;
+
+  /// No description provided for @notificationsChannelInApp.
+  ///
+  /// In es, this message translates to:
+  /// **'In-app'**
+  String get notificationsChannelInApp;
+
+  /// No description provided for @notificationsChannelPush.
+  ///
+  /// In es, this message translates to:
+  /// **'Push'**
+  String get notificationsChannelPush;
+
+  /// No description provided for @notificationsChannelsUpcoming.
+  ///
+  /// In es, this message translates to:
+  /// **'Email / WhatsApp / SMS: Proximamente'**
+  String get notificationsChannelsUpcoming;
+
+  /// No description provided for @notificationsEventReclamoNuevo.
+  ///
+  /// In es, this message translates to:
+  /// **'Reclamo nuevo'**
+  String get notificationsEventReclamoNuevo;
+
+  /// No description provided for @notificationsEventReclamoRespuesta.
+  ///
+  /// In es, this message translates to:
+  /// **'Reclamo: respuesta'**
+  String get notificationsEventReclamoRespuesta;
+
+  /// No description provided for @notificationsEventExpensaEmitida.
+  ///
+  /// In es, this message translates to:
+  /// **'Expensa emitida'**
+  String get notificationsEventExpensaEmitida;
+
+  /// No description provided for @notificationsEventExpensaVencida.
+  ///
+  /// In es, this message translates to:
+  /// **'Expensa vencida'**
+  String get notificationsEventExpensaVencida;
+
+  /// No description provided for @notificationsEventReservaConfirmada.
+  ///
+  /// In es, this message translates to:
+  /// **'Reserva confirmada'**
+  String get notificationsEventReservaConfirmada;
+
+  /// No description provided for @notificationsEventReservaCancelada.
+  ///
+  /// In es, this message translates to:
+  /// **'Reserva cancelada'**
+  String get notificationsEventReservaCancelada;
+
   /// No description provided for @roleAdmin.
   ///
   /// In es, this message translates to:

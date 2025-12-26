@@ -1,3 +1,4 @@
+import 'package:consorcio_360/core/i18n/role_label.dart';
 import 'package:consorcio_360/data/models/usuario_contexto.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -214,19 +215,6 @@ class _DashboardTabState extends State<DashboardTab> {
     _reclamosResueltos = resueltos;
   }
 
-  String get _rolLegible {
-    switch (widget.contexto.rol) {
-      case 'ADMIN_CONSORCIO':
-        return 'Administrador';
-      case 'PROPIETARIO':
-        return 'Propietario';
-      case 'MORADOR':
-        return 'Morador';
-      default:
-        return widget.contexto.rol;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -248,7 +236,7 @@ class _DashboardTabState extends State<DashboardTab> {
               ),
               const SizedBox(height: 4),
               Text(
-                _rolLegible,
+                roleLabel(context, widget.contexto.rol),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: Colors.grey[700],
                 ),

@@ -9,12 +9,12 @@ String roleLabel(BuildContext context, String rolDb) {
 
   switch (rolDb) {
     case 'ADMIN_CONSORCIO':
-      return l10n.roleAdmin;
+      return l10n.roleAdminConsorcio;
     case 'PROPIETARIO':
-      return l10n.roleOwner;
+      return l10n.rolePropietario;
     case 'MORADOR':
-      return l10n.roleTenant;
+      return l10n.roleOcupanteDefault;
     default:
-      return rolDb; // fallback por si aparece algo nuevo
+      return rolDb.replaceAll('_', ' '); // fallback por si aparece algo nuevo
   }
 }
