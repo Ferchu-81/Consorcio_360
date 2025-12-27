@@ -34,6 +34,13 @@
   "notificationsEventReservaCancelada": "Reserva cancelada",
   "roleAdmin": "Síndico",
   "roleOwner": "Proprietário",
+  "roleOccupantDefault": "Morador",
+  "roleAdmin_description": "Rótulo de função: administrador do condomínio",
+  "roleOwner_description": "Rótulo de função: proprietário",
+  "roleOccupantDefault_description": "Rótulo de função: ocupante (padrão)",
+  "neighbor": "Vizinho",
+  "neighbor_description": "Rótulo genérico quando o papel do usuário é desconhecido",
+  "genericUser": "Usuário",
   "roleTenant": "Inquilino",
   "roleOccupant": "Morador",
   "roleOwnerOrTenant": "Proprietário / Inquilino",
@@ -43,5 +50,6 @@
   "cfgAmenitiesOwnerNonOccupantSubtitle": "Permite usar e reservar áreas comuns mesmo sem morar na unidade.",
   "cfgOwnerVoteWithoutOccupyingTitle": "Voto do proprietário sem residir",
   "cfgOwnerVoteWithoutOccupyingSubtitle": "Permite que o proprietário vote mesmo com um residente na unidade.",
+  "unitLabel": "Unidade",
   "unit": "Unidade"
 }

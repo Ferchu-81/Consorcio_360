@@ -74,9 +74,9 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
     final shouldLogout = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Cerrar sesiÃ³n'),
+            title: const Text('Cerrar sesión'),
             content: const Text(
-              'Â¿QuerÃ©s cerrar la sesiÃ³n actual?\n'
+              '¿Querés cerrar la sesión actual?\n'
               'Vas a tener que ingresar de nuevo para continuar.',
             ),
             actions: [
@@ -86,7 +86,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
               ),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Cerrar sesiÃ³n'),
+                child: const Text('Cerrar sesión'),
               ),
             ],
           ),
@@ -113,8 +113,8 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
           builder: (context) => AlertDialog(
             title: const Text('Cambiar de rol / unidad'),
             content: const Text(
-              'Â¿QuerÃ©s cambiar de consorcio, unidad o rol?\n'
-              'Se cerrarÃ¡ el contexto actual.'
+              '¿Querés cambiar de consorcio, unidad o rol?\n'
+              'Se cerrará el contexto actual.'
             ),
             actions: [
               TextButton(
@@ -231,7 +231,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
         body: const Center(
           child: Text(
             'No hay contexto seleccionado.\n'
-            'VolvÃ© a la pantalla anterior.',
+            'Volvé a la pantalla anterior.',
             textAlign: TextAlign.center,
           ),
         ),
@@ -240,7 +240,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
 
     final bool esAdmin = contexto.rol == 'ADMIN_CONSORCIO';
 
-    // SelecciÃ³n de tab
+    // Selección de tab
     late final Widget body;
     if (_selectedIndex == 0) {
       body = DashboardTab(contexto: contexto);
@@ -294,7 +294,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
             ),
           ),
           IconButton(
-            tooltip: 'Cerrar sesiÃ³n',
+            tooltip: 'Cerrar sesión',
             icon: const Icon(Icons.logout),
             onPressed: _confirmLogout,
           ),

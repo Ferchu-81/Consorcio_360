@@ -34,6 +34,13 @@
   "notificationsEventReservaCancelada": "Reservation canceled",
   "roleAdmin": "Administrator",
   "roleOwner": "Owner",
+  "roleOccupantDefault": "Occupant",
+  "roleAdmin_description": "Role label: building administrator",
+  "roleOwner_description": "Role label: owner",
+  "roleOccupantDefault_description": "Role label: occupant (default)",
+  "neighbor": "Neighbor",
+  "neighbor_description": "Generic label when user's role is unknown",
+  "genericUser": "User",
   "roleTenant": "Tenant",
   "roleOccupant": "Occupant",
   "roleOwnerOrTenant": "Owner / Tenant",
@@ -43,5 +50,6 @@
   "cfgAmenitiesOwnerNonOccupantSubtitle": "Allows the owner to use and reserve amenities even when not living in the unit.",
   "cfgOwnerVoteWithoutOccupyingTitle": "Owner voting without occupying",
   "cfgOwnerVoteWithoutOccupyingSubtitle": "Allows the owner to vote even if there is an occupant in the unit.",
+  "unitLabel": "Unit",
   "unit": "Unit"
 }

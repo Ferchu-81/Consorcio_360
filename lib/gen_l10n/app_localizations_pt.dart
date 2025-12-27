@@ -117,6 +117,30 @@ class AppLocalizationsPt extends AppLocalizations {
   String get roleOwner => 'Proprietário';
 
   @override
+  String get roleOccupantDefault => 'Morador';
+
+  @override
+  String get roleAdmin_description =>
+      'Rótulo de função: administrador do condomínio';
+
+  @override
+  String get roleOwner_description => 'Rótulo de função: proprietário';
+
+  @override
+  String get roleOccupantDefault_description =>
+      'Rótulo de função: ocupante (padrão)';
+
+  @override
+  String get neighbor => 'Vizinho';
+
+  @override
+  String get neighbor_description =>
+      'Rótulo genérico quando o papel do usuário é desconhecido';
+
+  @override
+  String get genericUser => 'Usuário';
+
+  @override
   String get roleTenant => 'Inquilino';
 
   @override
@@ -146,6 +170,9 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get cfgOwnerVoteWithoutOccupyingSubtitle =>
       'Permite que o proprietário vote mesmo com um residente na unidade.';
+
+  @override
+  String get unitLabel => 'Unidade';
 
   @override
   String get unit => 'Unidade';

@@ -34,6 +34,13 @@
   "notificationsEventReservaCancelada": "Reserva cancelada",
   "roleAdmin": "Administrador",
   "roleOwner": "Propietario",
+  "roleOccupantDefault": "Inquilino",
+  "roleAdmin_description": "Label de rol: administrador del consorcio",
+  "roleOwner_description": "Label de rol: propietario",
+  "roleOccupantDefault_description": "Label de rol: ocupante (por defecto AR: Inquilino)",
+  "neighbor": "Vecino",
+  "neighbor_description": "Label genérico para un usuario cuando no se conoce su rol",
+  "genericUser": "Usuario",
   "roleTenant": "Inquilino",
   "roleOccupant": "Ocupante",
   "roleOwnerOrTenant": "Propietario / Inquilino",
@@ -43,5 +50,6 @@
   "cfgAmenitiesOwnerNonOccupantSubtitle": "Permite usar y reservar amenities aunque no viva en la unidad.",
   "cfgOwnerVoteWithoutOccupyingTitle": "Voto del propietario sin ocupar",
   "cfgOwnerVoteWithoutOccupyingSubtitle": "Permite votar al propietario aunque haya un ocupante en la unidad.",
+  "unitLabel": "Unidad",
   "unit": "Unidad"
 }

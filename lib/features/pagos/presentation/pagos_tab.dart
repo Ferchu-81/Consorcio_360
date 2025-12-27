@@ -144,6 +144,7 @@ class _PagosTabState extends State<PagosTab> {
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: ListTile(
+                  isThreeLine: true,
                   leading: const Icon(Icons.receipt_long_outlined),
                   title: Text(
                     'Unidad $unidadLabel • $periodoLabel',
@@ -154,6 +155,7 @@ class _PagosTabState extends State<PagosTab> {
                     'Medio: $medioLabel',
                   ),
                   trailing: Column(
+                    mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [

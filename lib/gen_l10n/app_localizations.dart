@@ -304,6 +304,48 @@ abstract class AppLocalizations {
   /// **'Propietario'**
   String get roleOwner;
 
+  /// No description provided for @roleOccupantDefault.
+  ///
+  /// In es, this message translates to:
+  /// **'Inquilino'**
+  String get roleOccupantDefault;
+
+  /// No description provided for @roleAdmin_description.
+  ///
+  /// In es, this message translates to:
+  /// **'Label de rol: administrador del consorcio'**
+  String get roleAdmin_description;
+
+  /// No description provided for @roleOwner_description.
+  ///
+  /// In es, this message translates to:
+  /// **'Label de rol: propietario'**
+  String get roleOwner_description;
+
+  /// No description provided for @roleOccupantDefault_description.
+  ///
+  /// In es, this message translates to:
+  /// **'Label de rol: ocupante (por defecto AR: Inquilino)'**
+  String get roleOccupantDefault_description;
+
+  /// No description provided for @neighbor.
+  ///
+  /// In es, this message translates to:
+  /// **'Vecino'**
+  String get neighbor;
+
+  /// No description provided for @neighbor_description.
+  ///
+  /// In es, this message translates to:
+  /// **'Label genérico para un usuario cuando no se conoce su rol'**
+  String get neighbor_description;
+
+  /// No description provided for @genericUser.
+  ///
+  /// In es, this message translates to:
+  /// **'Usuario'**
+  String get genericUser;
+
   /// No description provided for @roleTenant.
   ///
   /// In es, this message translates to:
@@ -357,6 +399,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Permite votar al propietario aunque haya un ocupante en la unidad.'**
   String get cfgOwnerVoteWithoutOccupyingSubtitle;
+
+  /// No description provided for @unitLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Unidad'**
+  String get unitLabel;
 
   /// No description provided for @unit.
   ///

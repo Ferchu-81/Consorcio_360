@@ -115,6 +115,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get roleOwner => 'Owner';
 
   @override
+  String get roleOccupantDefault => 'Occupant';
+
+  @override
+  String get roleAdmin_description => 'Role label: building administrator';
+
+  @override
+  String get roleOwner_description => 'Role label: owner';
+
+  @override
+  String get roleOccupantDefault_description =>
+      'Role label: occupant (default)';
+
+  @override
+  String get neighbor => 'Neighbor';
+
+  @override
+  String get neighbor_description =>
+      'Generic label when user\'s role is unknown';
+
+  @override
+  String get genericUser => 'User';
+
+  @override
   String get roleTenant => 'Tenant';
 
   @override
@@ -144,6 +167,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get cfgOwnerVoteWithoutOccupyingSubtitle =>
       'Allows the owner to vote even if there is an occupant in the unit.';
+
+  @override
+  String get unitLabel => 'Unit';
 
   @override
   String get unit => 'Unit';

@@ -2,7 +2,7 @@
 
 import 'package:consorcio_360/core/state/current_context_notifier.dart';
 import 'package:consorcio_360/data/models/usuario_contexto.dart';
-import 'package:consorcio_360/core/i18n/role_label.dart';
+import 'package:consorcio_360/core/i18n/author_label.dart';
 import 'package:consorcio_360/gen_l10n/app_localizations.dart';
 import 'package:consorcio_360/features/reclamos/presentation/reclamo_adjuntos_screen.dart';
 import 'package:consorcio_360/features/reclamos/presentation/reclamos_utils.dart';
@@ -37,7 +37,7 @@ class _ReclamoEmptyHint extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: const [
               Text(
-                'Â¿CÃ³mo funciona este reclamo?',
+                '¿Cómo funciona este reclamo?',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -45,7 +45,7 @@ class _ReclamoEmptyHint extends StatelessWidget {
               ),
               SizedBox(height: 6),
               Text(
-                'UsÃ¡ este espacio como un chat para comunicarte con la administraciÃ³n. Cada mensaje queda registrado como parte del expediente del reclamo y no se puede editar ni borrar.',
+                'Usá este espacio como un chat para comunicarte con la administración. Cada mensaje queda registrado como parte del expediente del reclamo y no se puede editar ni borrar.',
                 style: TextStyle(
                   fontSize: 12,
                   height: 1.3,
@@ -54,7 +54,7 @@ class _ReclamoEmptyHint extends StatelessWidget {
               ),
               SizedBox(height: 4),
               Text(
-                'PodÃ©s adjuntar fotos, describir mejor el problema y hacer seguimiento '
+                'Podés adjuntar fotos, describir mejor el problema y hacer seguimiento '
                 'de las respuestas.',
                 style: TextStyle(
                   fontSize: 12,
@@ -177,6 +177,7 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
 
     try {
       final supabase = Supabase.instance.client;
+      final contexto = context.read<CurrentContextNotifier>().current;
 
       final reclamoData = await supabase
           .from('reclamos')
@@ -189,6 +190,7 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
             descripcion,
             fecha_creacion,
             unidad:unidades (
+              id,
               codigo
             )
           ''')
@@ -205,6 +207,12 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
         return;
       }
 
+      final reclamoMap = Map<String, dynamic>.from(reclamoData);
+      final consorcioId = contexto?.consorcioId ?? '';
+      final unidadId =
+          contexto?.unidadId ??
+          (reclamoMap['unidad']?['id'] ?? '').toString().trim();
+
       final mensajesData = await supabase
           .from('reclamo_mensajes')
           .select('''
@@ -220,9 +228,46 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
           .eq('reclamo_id', widget.reclamoId)
           .order('fecha_mensaje', ascending: true);
 
+      final mensajes = List<Map<String, dynamic>>.from(mensajesData);
+      final userIds = mensajes
+          .map((m) => m['usuario_id']?.toString())
+          .whereType<String>()
+          .toSet()
+          .toList();
+      final rolPorUsuarioId = <String, String>{};
+
+      if (userIds.isNotEmpty && consorcioId.isNotEmpty && unidadId.isNotEmpty) {
+        final uuRows = await supabase
+            .from('usuarios_unidades')
+            .select('usuario_id, rol')
+            .eq('consorcio_id', consorcioId)
+            .eq('unidad_id', unidadId)
+            .inFilter('usuario_id', userIds);
+
+        for (final row in (uuRows as List)) {
+          final map = row as Map<String, dynamic>;
+          final userId = map['usuario_id']?.toString();
+          final rol = map['rol']?.toString();
+          if (userId != null && rol != null) {
+            rolPorUsuarioId[userId] = rol;
+          }
+        }
+      }
+
+      final mensajesConRol = mensajes
+          .map((m) {
+            final uid = m['usuario_id']?.toString();
+            final rol = uid == null ? null : rolPorUsuarioId[uid];
+            return {
+              ...m,
+              'autor_rol': rol,
+            };
+          })
+          .toList();
+
       setState(() {
-        _reclamo = Map<String, dynamic>.from(reclamoData);
-        _mensajes = List<Map<String, dynamic>>.from(mensajesData);
+        _reclamo = reclamoMap;
+        _mensajes = mensajesConRol;
       });
 
       await _loadAdjuntosSolo();
@@ -256,6 +301,11 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
   Future<void> _loadMensajesSolo() async {
     try {
       final supabase = Supabase.instance.client;
+      final contexto = context.read<CurrentContextNotifier>().current;
+      final consorcioId = contexto?.consorcioId ?? '';
+      final unidadId =
+          contexto?.unidadId ??
+          (_reclamo?['unidad']?['id'] ?? '').toString().trim();
 
       final mensajesData = await supabase
           .from('reclamo_mensajes')
@@ -272,8 +322,45 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
           .eq('reclamo_id', widget.reclamoId)
           .order('fecha_mensaje', ascending: true);
 
+      final mensajes = List<Map<String, dynamic>>.from(mensajesData);
+      final userIds = mensajes
+          .map((m) => m['usuario_id']?.toString())
+          .whereType<String>()
+          .toSet()
+          .toList();
+      final rolPorUsuarioId = <String, String>{};
+
+      if (userIds.isNotEmpty && consorcioId.isNotEmpty && unidadId.isNotEmpty) {
+        final uuRows = await supabase
+            .from('usuarios_unidades')
+            .select('usuario_id, rol')
+            .eq('consorcio_id', consorcioId)
+            .eq('unidad_id', unidadId)
+            .inFilter('usuario_id', userIds);
+
+        for (final row in (uuRows as List)) {
+          final map = row as Map<String, dynamic>;
+          final userId = map['usuario_id']?.toString();
+          final rol = map['rol']?.toString();
+          if (userId != null && rol != null) {
+            rolPorUsuarioId[userId] = rol;
+          }
+        }
+      }
+
+      final mensajesConRol = mensajes
+          .map((m) {
+            final uid = m['usuario_id']?.toString();
+            final rol = uid == null ? null : rolPorUsuarioId[uid];
+            return {
+              ...m,
+              'autor_rol': rol,
+            };
+          })
+          .toList();
+
       setState(() {
-        _mensajes = List<Map<String, dynamic>>.from(mensajesData);
+        _mensajes = mensajesConRol;
       });
 
       _scrollToBottom();
@@ -664,35 +751,43 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
   ) {
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
     final esMio = mensaje['usuario_id'] == currentUserId;
-    final soyAdmin = contexto.rol == 'ADMIN_CONSORCIO';
     final l10n = AppLocalizations.of(context);
 
     final nombre = (usuario['nombre'] ?? '').toString().trim();
-    final nombreLabel = nombre.isEmpty ? 'Usuario' : nombre;
+    final nombreLabel = nombre.isEmpty ? l10n.genericUser : nombre;
 
-    if (soyAdmin) {
-      if (esMio) {
-        return '${l10n.roleAdmin} - $nombreLabel';
-      } else {
-        final unidadText = unidadCodigo.isEmpty ? '' : 'Unidad $unidadCodigo';
-        if (unidadText.isEmpty) {
-          return 'Vecino - $nombreLabel';
-        }
-        return '$nombreLabel - $unidadText';
-      }
-    } else {
-      if (esMio) {
-        final rolLabelText = roleLabel(context, contexto.rol);
-        final unidadText = unidadCodigo.isEmpty ? '' : 'Unidad $unidadCodigo';
-        final partes = <String>[rolLabelText, nombreLabel];
-        if (unidadText.isNotEmpty) {
-          partes.add(unidadText);
-        }
-        return partes.join(' - ');
-      } else {
-        return '${l10n.roleAdmin} - $nombreLabel';
-      }
+    String? autorRol;
+    final autorRolRaw = mensaje['autor_rol'];
+    if (autorRolRaw != null) {
+      autorRol = autorRolRaw.toString();
     }
+
+    if (autorRol != null && autorRol.trim().isEmpty) {
+      autorRol = null;
+    }
+
+    if (esMio) {
+      final miRolLabel = authorLabel(
+        context,
+        isAdmin: contexto.rol == 'ADMIN_CONSORCIO',
+        rol: contexto.rol,
+      );
+      final unidadText =
+          unidadCodigo.isEmpty ? '' : '${l10n.unitLabel} $unidadCodigo';
+      final partes = <String>[miRolLabel, nombreLabel];
+      if (unidadText.isNotEmpty) {
+        partes.add(unidadText);
+      }
+      return partes.join(' - ');
+    }
+
+    final rolAutorLabel = authorLabel(
+      context,
+      isAdmin: autorRol == 'ADMIN_CONSORCIO',
+      rol: autorRol,
+    );
+
+    return '$rolAutorLabel - $nombreLabel';
   }
 
   Future<Uint8List> _buildPdfBytes() async {
@@ -852,6 +947,7 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final userId = Supabase.instance.client.auth.currentUser?.id;
     final contexto = context.watch<CurrentContextNotifier>().current;
     final esAdmin = contexto?.rol == 'ADMIN_CONSORCIO';
@@ -1032,28 +1128,45 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
                           formatShortDateFromIso(m['fecha_mensaje']);
 
                       final usuarioMap =
-                          (m['usuario'] as Map<String, dynamic>?) ?? {};
+                          (m['usuario'] as Map<String, dynamic>?) ??
+                          <String, dynamic>{};
                       final nombreOtro = (usuarioMap['nombre'] ?? '')
                           .toString()
                           .trim();
 
+                      String? autorRol;
+                      final autorRolRaw = m['autor_rol'];
+                      if (autorRolRaw != null) {
+                        autorRol = autorRolRaw.toString();
+                      }
+                      if (autorRol != null && autorRol.trim().isEmpty) {
+                        autorRol = null;
+                      }
+
                       String etiqueta;
                       if (esMio) {
-                        final partes = <String>['Yo'];
+                        final miRolLabel = authorLabel(
+                          context,
+                          isAdmin: contexto?.rol == 'ADMIN_CONSORCIO',
+                          rol: contexto?.rol,
+                        );
+                        final partes = <String>[miRolLabel];
                         if (contexto?.consorcioNombre != null) {
                           partes.add(contexto!.consorcioNombre);
                         }
                         partes.add(fechaStr);
                         etiqueta = partes.join(' - ');
                       } else {
-                        final partes = <String>[];
+                        final rolAutorLabel = authorLabel(
+                          context,
+                          isAdmin: autorRol == 'ADMIN_CONSORCIO',
+                          rol: autorRol,
+                        );
+                        final nombreLabel =
+                            nombreOtro.isEmpty ? l10n.genericUser : nombreOtro;
+                        final partes = <String>[rolAutorLabel, nombreLabel];
                         if (unidadCodigo.isNotEmpty) {
-                          partes.add('Unidad $unidadCodigo');
-                        }
-                        if (nombreOtro.isNotEmpty) {
-                          partes.add(nombreOtro);
-                        } else {
-                          partes.add('Vecino');
+                          partes.add('${l10n.unitLabel} $unidadCodigo');
                         }
                         partes.add(fechaStr);
                         etiqueta = partes.join(' - ');
