@@ -7,6 +7,7 @@ import 'app.dart';
 import 'core/config/supabase_config.dart';
 import 'core/state/current_context_notifier.dart';
 import 'data/services/push_token_service.dart';
+import 'firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,7 +18,9 @@ Future<void> main() async {
   );
 
   try {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
     await PushTokenService.start();
   } catch (_) {}
 

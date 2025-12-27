@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1058666263748",
+    "project_id": "consorcio-360-2c56d",
+    "storage_bucket": "consorcio-360-2c56d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1058666263748:android:d8d8f3f503d1191603c591",
+        "android_client_info": {
+          "package_name": "com.example.consorcio_360"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAGtzha1Ekg0Lri5b8VU058rgLZu1JvsiA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
