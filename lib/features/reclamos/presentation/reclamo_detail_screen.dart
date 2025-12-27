@@ -300,10 +300,14 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
     try {
       final supabase = Supabase.instance.client;
       final contexto = context.read<CurrentContextNotifier>().current;
-      final consorcioId = contexto?.consorcioId ?? '';
-      final unidadId =
-          contexto?.unidadId ??
-          (_reclamo?['unidad']?['id'] ?? '').toString().trim();
+
+      // La unidad del reclamo manda. Si no está, fallback al contexto.
+      final unidadDelReclamo = (_reclamo?['unidad']?['id'] ?? '')
+          .toString()
+          .trim();
+      final unidadId = unidadDelReclamo.isNotEmpty
+          ? unidadDelReclamo
+          : (contexto?.unidadId ?? '');
 
       final mensajesData = await supabase
           .from('reclamo_mensajes')
@@ -328,11 +332,10 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
           .toList();
       final rolPorUsuarioId = <String, String>{};
 
-      if (userIds.isNotEmpty && consorcioId.isNotEmpty && unidadId.isNotEmpty) {
+      if (userIds.isNotEmpty && unidadId.isNotEmpty) {
         final uuRows = await supabase
             .from('usuarios_unidades')
             .select('usuario_id, rol')
-            .eq('consorcio_id', consorcioId)
             .eq('unidad_id', unidadId)
             .inFilter('usuario_id', userIds);
 
@@ -1268,5 +1271,4 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
     );
   }
 }
-
 
