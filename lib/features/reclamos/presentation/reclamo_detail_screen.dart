@@ -208,7 +208,6 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
       }
 
       final reclamoMap = Map<String, dynamic>.from(reclamoData);
-      final consorcioId = contexto?.consorcioId ?? '';
       final unidadId =
           contexto?.unidadId ??
           (reclamoMap['unidad']?['id'] ?? '').toString().trim();
@@ -236,11 +235,10 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
           .toList();
       final rolPorUsuarioId = <String, String>{};
 
-      if (userIds.isNotEmpty && consorcioId.isNotEmpty && unidadId.isNotEmpty) {
+      if (userIds.isNotEmpty && unidadId.isNotEmpty) {
         final uuRows = await supabase
             .from('usuarios_unidades')
             .select('usuario_id, rol')
-            .eq('consorcio_id', consorcioId)
             .eq('unidad_id', unidadId)
             .inFilter('usuario_id', userIds);
 
@@ -1270,6 +1268,5 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
     );
   }
 }
-
 
 
