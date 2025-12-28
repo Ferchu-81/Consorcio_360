@@ -2,7 +2,9 @@
 import 'package:consorcio_360/core/i18n/role_label.dart';
 import 'package:consorcio_360/core/state/current_context_notifier.dart';
 import 'package:consorcio_360/features/settings/presentation/consorcio_reglas_screen.dart';
+import 'package:consorcio_360/gen_l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -18,13 +20,13 @@ class SettingsScreen extends StatelessWidget {
 
     if (ctx == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Configuración')),
+        appBar: AppBar(title: const Text('Configuraci\u00f3n')),
         body: const Center(
           child: Padding(
             padding: EdgeInsets.all(16),
             child: Text(
               'No hay un contexto seleccionado.\n\n'
-              'Volvé atrás y elegí Consorcio / Unidad / Rol.',
+              'Volv\u00e9 atr\u00e1s y eleg\u00ed Consorcio / Unidad / Rol.',
               textAlign: TextAlign.center,
             ),
           ),
@@ -38,7 +40,7 @@ class SettingsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Configuración'),
+        title: const Text('Configuraci\u00f3n'),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -53,7 +55,7 @@ class SettingsScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.person_outline),
             title: const Text('Mi perfil'),
-            subtitle: const Text('Nombre, teléfono, datos fiscales'),
+            subtitle: const Text('Nombre, tel\u00e9fono, datos fiscales'),
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const ProfileScreen()),
             ),
@@ -69,7 +71,7 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          const _SectionTitle('Documentación'),
+          const _SectionTitle('Documentaci\u00f3n'),
           ListTile(
             leading: const Icon(Icons.library_books_outlined),
             title: const Text('Bases legales'),
@@ -89,7 +91,7 @@ class SettingsScreen extends StatelessWidget {
               leading: const Icon(Icons.home_outlined),
               title: const Text('Datos de mi unidad'),
               subtitle:
-                  const Text('m² declarados, tipo, ubicación (pendiente)'),
+                  const Text('mis declarados, tipo, ubicaci\u00f3n (pendiente)'),
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -114,14 +116,14 @@ class SettingsScreen extends StatelessWidget {
             ),
             ListTile(
               leading: const Icon(Icons.apartment_outlined),
-              title: const Text('Configuración del consorcio'),
+              title: const Text('Configuraci\u00f3n del consorcio'),
               subtitle:
-                  const Text('Tipo, ubicación, UF, facturación (pendiente)'),
+                  const Text('Tipo, ubicaci\u00f3n, UF, facturaci\u00f3n (pendiente)'),
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content:
-                        Text('Pendiente: Configuración global del consorcio'),
+                        Text('Pendiente: Configuraci\u00f3n global del consorcio'),
                   ),
                 );
               },
@@ -156,10 +158,23 @@ class SettingsScreen extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 12),
-          const _SectionTitle('Sesión'),
+          ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: Text(AppLocalizations.of(context).settingsAppVersion),
+            subtitle: FutureBuilder<PackageInfo>(
+              future: PackageInfo.fromPlatform(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) return const Text('...');
+                final p = snapshot.data!;
+                return Text('${p.version} (${p.buildNumber})');
+              },
+            ),
+          ),
+          const SizedBox(height: 12),
+          const _SectionTitle('Sesi\u00f3n'),
           ListTile(
             leading: const Icon(Icons.logout),
-            title: const Text('Cerrar sesión'),
+            title: const Text('Cerrar sesi\u00f3n'),
             onTap: () async {
               await Supabase.instance.client.auth.signOut();
               if (context.mounted) {
@@ -198,7 +213,7 @@ class _ContextHeader extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              '$consorcio · Unidad $unidad\nRol: $rol',
+              '$consorcio - Unidad $unidad\nRol: $rol',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ),
