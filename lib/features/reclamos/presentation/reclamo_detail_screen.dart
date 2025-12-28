@@ -1,11 +1,12 @@
 ﻿import 'dart:typed_data';
 
+import 'package:consorcio_360/core/i18n/role_label.dart';
 import 'package:consorcio_360/core/state/current_context_notifier.dart';
-import 'package:consorcio_360/data/models/usuario_contexto.dart';
-import 'package:consorcio_360/core/i18n/author_label.dart';
-import 'package:consorcio_360/gen_l10n/app_localizations.dart';
 import 'package:consorcio_360/features/reclamos/presentation/reclamo_adjuntos_screen.dart';
 import 'package:consorcio_360/features/reclamos/presentation/reclamos_utils.dart';
+import 'package:consorcio_360/gen_l10n/app_localizations.dart';
+import 'package:consorcio_360/shared/pdf/pdf_actions.dart';
+import 'package:consorcio_360/shared/pdf/pdf_theme.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -13,7 +14,6 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:consorcio_360/shared/pdf/pdf_actions.dart';
 
 class _ReclamoEmptyHint extends StatelessWidget {
   const _ReclamoEmptyHint();
@@ -28,24 +28,19 @@ class _ReclamoEmptyHint extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.blueGrey.withValues(alpha: 0.06),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Colors.blueGrey.withValues(alpha: 0.15),
-            ),
+            border: Border.all(color: Colors.blueGrey.withValues(alpha: 0.15)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: const [
               Text(
-                '¿Cómo funciona este reclamo?',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
+                '\u00bfC\u00f3mo funciona este reclamo?',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
               ),
               SizedBox(height: 6),
               Text(
-                'Usá este espacio como un chat para comunicarte con la administración. Cada mensaje queda registrado como parte del expediente del reclamo y no se puede editar ni borrar.',
+                'Us\u00e1 este espacio como un chat para comunicarte con la administraci\u00f3n. Cada mensaje queda registrado como parte del expediente del reclamo y no se puede editar ni borrar.',
                 style: TextStyle(
                   fontSize: 12,
                   height: 1.3,
@@ -54,7 +49,7 @@ class _ReclamoEmptyHint extends StatelessWidget {
               ),
               SizedBox(height: 4),
               Text(
-                'Podés adjuntar fotos, describir mejor el problema y hacer seguimiento '
+                'Pod\u00e9s adjuntar fotos, describir mejor el problema y hacer seguimiento '
                 'de las respuestas.',
                 style: TextStyle(
                   fontSize: 12,
@@ -74,10 +69,7 @@ class _InfoChip extends StatelessWidget {
   final String label;
   final String value;
 
-  const _InfoChip({
-    required this.label,
-    required this.value,
-  });
+  const _InfoChip({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -101,10 +93,7 @@ class _InfoChip extends StatelessWidget {
           ),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-            ),
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -169,6 +158,51 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
     });
   }
 
+  String _formatFechaHora(dynamic value) {
+    final fecha = formatShortDateFromIso(value);
+    if (value == null) return fecha;
+    final dt = DateTime.tryParse(value.toString());
+    if (dt == null) return fecha;
+    final local = dt.toLocal();
+    final hh = local.hour.toString().padLeft(2, '0');
+    final mm = local.minute.toString().padLeft(2, '0');
+    return '$fecha $hh:$mm';
+  }
+
+  String _formatTipoAdjunto(dynamic value, AppLocalizations l10n) {
+    final tipo = value?.toString().toLowerCase().trim() ?? '';
+    switch (tipo) {
+      case 'pdf':
+        return l10n.reclamoAdjuntoTipoPdf;
+      case 'imagen':
+      case 'image':
+        return l10n.reclamoAdjuntoTipoImagen;
+      case 'jpg':
+      case 'jpeg':
+        return 'JPG';
+      case 'png':
+        return 'PNG';
+      case 'gif':
+        return 'GIF';
+      default:
+        return tipo.isEmpty ? l10n.reclamoAdjuntoTipoDesconocido : tipo;
+    }
+  }
+
+  String _formatTipoAdjuntoPorNombre(
+    String? fileName,
+    String? mimeType,
+    AppLocalizations l10n,
+  ) {
+    final name = (fileName ?? '').toLowerCase().trim();
+    if (name.endsWith('.jpg') || name.endsWith('.jpeg')) return 'JPG';
+    if (name.endsWith('.png')) return 'PNG';
+    if (name.endsWith('.gif')) return 'GIF';
+    if (name.endsWith('.pdf')) return 'PDF';
+    if (mimeType == null) return l10n.reclamoAdjuntoTipoDesconocido;
+    return _formatTipoAdjunto(mimeType, l10n);
+  }
+
   Future<void> _loadAll() async {
     setState(() {
       _isLoading = true;
@@ -208,9 +242,14 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
       }
 
       final reclamoMap = Map<String, dynamic>.from(reclamoData);
-      final unidadId =
-          contexto?.unidadId ??
-          (reclamoMap['unidad']?['id'] ?? '').toString().trim();
+      final consorcioId = contexto?.consorcioId ?? '';
+
+      final unidadDelReclamo = (reclamoMap['unidad']?['id'] ?? '')
+          .toString()
+          .trim();
+      final unidadId = unidadDelReclamo.isNotEmpty
+          ? unidadDelReclamo
+          : (contexto?.unidadId ?? '');
 
       final mensajesData = await supabase
           .from('reclamo_mensajes')
@@ -221,7 +260,8 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
             usuario_id,
             usuario:usuarios (
               id,
-              nombre
+              nombre,
+              apellido
             )
           ''')
           .eq('reclamo_id', widget.reclamoId)
@@ -235,10 +275,11 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
           .toList();
       final rolPorUsuarioId = <String, String>{};
 
-      if (userIds.isNotEmpty && unidadId.isNotEmpty) {
+      if (userIds.isNotEmpty && consorcioId.isNotEmpty && unidadId.isNotEmpty) {
         final uuRows = await supabase
-            .from('usuarios_unidades')
+            .from('v_usuarios_unidades')
             .select('usuario_id, rol')
+            .eq('consorcio_id', consorcioId)
             .eq('unidad_id', unidadId)
             .inFilter('usuario_id', userIds);
 
@@ -252,16 +293,11 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
         }
       }
 
-      final mensajesConRol = mensajes
-          .map((m) {
-            final uid = m['usuario_id']?.toString();
-            final rol = uid == null ? null : rolPorUsuarioId[uid];
-            return {
-              ...m,
-              'autor_rol': rol,
-            };
-          })
-          .toList();
+      final mensajesConRol = mensajes.map((m) {
+        final uid = m['usuario_id']?.toString();
+        final rol = uid == null ? null : rolPorUsuarioId[uid];
+        return {...m, 'autor_rol': rol};
+      }).toList();
 
       setState(() {
         _reclamo = reclamoMap;
@@ -300,8 +336,9 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
     try {
       final supabase = Supabase.instance.client;
       final contexto = context.read<CurrentContextNotifier>().current;
+      final consorcioId = contexto?.consorcioId ?? '';
 
-      // La unidad del reclamo manda. Si no está, fallback al contexto.
+      // La unidad del reclamo manda. Si no estÃ¡, fallback al contexto.
       final unidadDelReclamo = (_reclamo?['unidad']?['id'] ?? '')
           .toString()
           .trim();
@@ -318,7 +355,8 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
             usuario_id,
             usuario:usuarios (
               id,
-              nombre
+              nombre,
+              apellido
             )
           ''')
           .eq('reclamo_id', widget.reclamoId)
@@ -332,10 +370,11 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
           .toList();
       final rolPorUsuarioId = <String, String>{};
 
-      if (userIds.isNotEmpty && unidadId.isNotEmpty) {
+      if (userIds.isNotEmpty && consorcioId.isNotEmpty && unidadId.isNotEmpty) {
         final uuRows = await supabase
-            .from('usuarios_unidades')
+            .from('v_usuarios_unidades')
             .select('usuario_id, rol')
+            .eq('consorcio_id', consorcioId)
             .eq('unidad_id', unidadId)
             .inFilter('usuario_id', userIds);
 
@@ -349,16 +388,11 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
         }
       }
 
-      final mensajesConRol = mensajes
-          .map((m) {
-            final uid = m['usuario_id']?.toString();
-            final rol = uid == null ? null : rolPorUsuarioId[uid];
-            return {
-              ...m,
-              'autor_rol': rol,
-            };
-          })
-          .toList();
+      final mensajesConRol = mensajes.map((m) {
+        final uid = m['usuario_id']?.toString();
+        final rol = uid == null ? null : rolPorUsuarioId[uid];
+        return {...m, 'autor_rol': rol};
+      }).toList();
 
       setState(() {
         _mensajes = mensajesConRol;
@@ -376,14 +410,82 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
     try {
       final supabase = Supabase.instance.client;
 
+      final contexto = context.read<CurrentContextNotifier>().current;
+      final consorcioId = contexto?.consorcioId ?? '';
+      final unidadDelReclamo = (_reclamo?['unidad']?['id'] ?? '')
+          .toString()
+          .trim();
+      final unidadId = unidadDelReclamo.isNotEmpty
+          ? unidadDelReclamo
+          : (contexto?.unidadId ?? '');
+
       final adjuntosData = await supabase
           .from('reclamo_adjuntos')
           .select('*')
           .eq('reclamo_id', widget.reclamoId)
           .order('fecha_subida', ascending: true);
 
+      final adjuntosList = List<Map<String, dynamic>>.from(adjuntosData);
+      final userIds = adjuntosList
+          .map((a) => a['usuario_id']?.toString())
+          .whereType<String>()
+          .toSet()
+          .toList();
+
+      final nombrePorUsuarioId = <String, String>{};
+      if (userIds.isNotEmpty) {
+        final usuariosData = await supabase
+            .from('usuarios')
+            .select('id, nombre, apellido')
+            .inFilter('id', userIds);
+
+        for (final row in (usuariosData as List)) {
+          final map = row as Map<String, dynamic>;
+          final userId = map['id']?.toString();
+          final nombre = (map['nombre'] ?? '').toString().trim();
+          final apellido = (map['apellido'] ?? '').toString().trim();
+          final nombreCompleto = [nombre, apellido]
+              .where((value) => value.isNotEmpty)
+              .join(' ');
+          if (userId != null && nombreCompleto.isNotEmpty) {
+            nombrePorUsuarioId[userId] = nombreCompleto;
+          }
+        }
+      }
+
+      final rolPorUsuarioId = <String, String>{};
+      if (userIds.isNotEmpty && consorcioId.isNotEmpty && unidadId.isNotEmpty) {
+        final uuRows = await supabase
+            .from('v_usuarios_unidades')
+            .select('usuario_id, rol')
+            .eq('consorcio_id', consorcioId)
+            .eq('unidad_id', unidadId)
+            .inFilter('usuario_id', userIds);
+
+        for (final row in (uuRows as List)) {
+          final map = row as Map<String, dynamic>;
+          final userId = map['usuario_id']?.toString();
+          final rol = map['rol']?.toString();
+          if (userId != null && rol != null) {
+            rolPorUsuarioId[userId] = rol;
+          }
+        }
+      }
+
+      final adjuntosConAutor = adjuntosList.map((a) {
+        final userId = a['usuario_id']?.toString();
+        final autorNombre = userId == null ? null : nombrePorUsuarioId[userId];
+        final autorRol = userId == null ? null : rolPorUsuarioId[userId];
+
+        return {
+          ...a,
+          'autor_nombre': autorNombre,
+          'autor_rol': autorRol,
+        };
+      }).toList();
+
       setState(() {
-        _adjuntos = List<Map<String, dynamic>>.from(adjuntosData);
+        _adjuntos = adjuntosConAutor;
       });
     } on PostgrestException catch (e, st) {
       debugPrint(
@@ -423,6 +525,7 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
 
     try {
       final supabase = Supabase.instance.client;
+      final userId = Supabase.instance.client.auth.currentUser?.id;
 
       final cleanName = fileName.replaceAll(' ', '_');
       final path = '${widget.reclamoId}/$cleanName';
@@ -439,6 +542,7 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
 
       final insertData = {
         'reclamo_id': widget.reclamoId,
+        'usuario_id': userId,
         'tipo_archivo': isPdf ? 'pdf' : 'imagen',
         'url_archivo': path,
         'archivo_nombre': fileName,
@@ -745,50 +849,38 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
   }
 
   String _buildEmisorLabelForPdf(
-    Map<String, dynamic> mensaje,
-    Map<String, dynamic> usuario,
-    UsuarioContexto contexto,
+    String nombreLabel,
+    String? autorRol,
     String unidadCodigo,
-  ) {
-    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
-    final esMio = mensaje['usuario_id'] == currentUserId;
-    final l10n = AppLocalizations.of(context);
+    String consorcioNombre,
+    AppLocalizations l10n, {
+    bool includeLocation = true,
+    bool includeAdminLocation = true,
+  }) {
+    final partes = <String>[];
 
-    final nombre = (usuario['nombre'] ?? '').toString().trim();
-    final nombreLabel = nombre.isEmpty ? l10n.genericUser : nombre;
-
-    String? autorRol;
-    final autorRolRaw = mensaje['autor_rol'];
-    if (autorRolRaw != null) {
-      autorRol = autorRolRaw.toString();
-    }
-
-    if (autorRol != null && autorRol.trim().isEmpty) {
-      autorRol = null;
-    }
-
-    if (esMio) {
-      final miRolLabel = authorLabel(
-        context,
-        isAdmin: contexto.rol == 'ADMIN_CONSORCIO',
-        rol: contexto.rol,
-      );
-      final unidadText =
-          unidadCodigo.isEmpty ? '' : '${l10n.unitLabel} $unidadCodigo';
-      final partes = <String>[miRolLabel, nombreLabel];
-      if (unidadText.isNotEmpty) {
-        partes.add(unidadText);
+    if (autorRol == null || autorRol == 'ADMIN_CONSORCIO') {
+      partes.add(l10n.roleAdmin);
+      if (nombreLabel.isNotEmpty) {
+        partes.add(nombreLabel);
+      }
+      if (includeAdminLocation && consorcioNombre.isNotEmpty) {
+        partes.add(consorcioNombre);
       }
       return partes.join(' - ');
     }
 
-    final rolAutorLabel = authorLabel(
-      context,
-      isAdmin: autorRol == 'ADMIN_CONSORCIO',
-      rol: autorRol,
-    );
-
-    return '$rolAutorLabel - $nombreLabel';
+    final rolLabel = roleLabel(context, autorRol);
+    if (rolLabel.isNotEmpty) {
+      partes.add(rolLabel);
+    }
+    if (nombreLabel.isNotEmpty) {
+      partes.add(nombreLabel);
+    }
+    if (includeLocation && unidadCodigo.isNotEmpty) {
+      partes.add(unidadCodigo);
+    }
+    return partes.join(' - ');
   }
 
   Future<Uint8List> _buildPdfBytes() async {
@@ -797,10 +889,14 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
       return Uint8List(0);
     }
 
-    final doc = pw.Document();
+    final l10n = AppLocalizations.of(context);
+    final theme = await PdfThemeLoader.load();
+    final doc = pw.Document(theme: theme);
     final estadoActualRaw = _reclamo!['estado']?.toString() ?? 'PENDIENTE';
-    final estadoActual =
-        estadoActualRaw.trim().toUpperCase().replaceAll(' ', '_');
+    final estadoActual = estadoActualRaw.trim().toUpperCase().replaceAll(
+      ' ',
+      '_',
+    );
     final estadoLabel = formatEnumLabel(estadoActual);
     final prioridadLabel = formatEnumLabel(
       _reclamo!['prioridad']?.toString() ?? '',
@@ -812,20 +908,49 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
 
     final mensajesRows = <List<String>>[];
     final participantes = <String>{};
+    final consorcioNombre = contexto.consorcioNombre.toString().trim();
 
     for (final m in _mensajes) {
-      final fecha = formatShortDateFromIso(m['fecha_mensaje']);
+      final fecha = _formatFechaHora(m['fecha_mensaje']);
       final usuarioMap =
           (m['usuario'] as Map<String, dynamic>?) ?? <String, dynamic>{};
+      final nombre = (usuarioMap['nombre'] ?? '').toString().trim();
+      final apellido = (usuarioMap['apellido'] ?? '').toString().trim();
+      final nombreCompleto = [nombre, apellido]
+          .where((value) => value.isNotEmpty)
+          .join(' ');
+      final nombreLabel =
+          nombreCompleto.isEmpty ? l10n.genericUser : nombreCompleto;
+
+      String? autorRol;
+      final autorRolRaw = m['autor_rol'];
+      if (autorRolRaw != null) {
+        autorRol = autorRolRaw.toString();
+      }
+      if (autorRol != null && autorRol.trim().isEmpty) {
+        autorRol = null;
+      }
+
       final emisor = _buildEmisorLabelForPdf(
-        m,
-        usuarioMap,
-        contexto,
+        nombreLabel,
+        autorRol,
         unidadCodigo,
+        consorcioNombre,
+        l10n,
+        includeLocation: false,
+        includeAdminLocation: false,
+      );
+      final participante = _buildEmisorLabelForPdf(
+        nombreLabel,
+        autorRol,
+        unidadCodigo,
+        consorcioNombre,
+        l10n,
+        includeAdminLocation: false,
       );
       final texto = (m['texto'] ?? '').toString();
 
-      participantes.add(emisor);
+      participantes.add(participante);
       mensajesRows.add([fecha, emisor, texto]);
     }
 
@@ -853,7 +978,7 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
         margin: const pw.EdgeInsets.all(32),
         build: (pdfContext) => [
           pw.Text(
-            'Expediente de reclamo',
+            l10n.reclamoPdfTitle,
             style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
           ),
           pw.SizedBox(height: 12),
@@ -863,25 +988,28 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
               1: const pw.FlexColumnWidth(),
             },
             children: [
-              infoRow('Consorcio', contexto.consorcioNombre),
+              infoRow(l10n.reclamoPdfConsorcio, contexto.consorcioNombre),
               infoRow(
-                'Unidad',
-                unidadCodigo.isEmpty ? '-' : 'Unidad $unidadCodigo',
+                l10n.reclamoPdfUnidad,
+                unidadCodigo.isEmpty ? '-' : unidadCodigo,
               ),
-              infoRow('Titulo', _reclamo!['titulo']?.toString() ?? ''),
-              infoRow('Tipo', _reclamo!['tipo']?.toString() ?? ''),
-              infoRow('Estado', estadoLabel),
-              infoRow('Prioridad', prioridadLabel),
               infoRow(
-                'Fecha emision',
-                formatShortDateFromIso(DateTime.now().toIso8601String()),
+                l10n.reclamoPdfTitulo,
+                _reclamo!['titulo']?.toString() ?? '',
+              ),
+              infoRow(l10n.reclamoPdfTipo, _reclamo!['tipo']?.toString() ?? ''),
+              infoRow(l10n.reclamoPdfEstado, estadoLabel),
+              infoRow(l10n.reclamoPdfPrioridad, prioridadLabel),
+              infoRow(
+                l10n.reclamoPdfFechaEmision,
+                _formatFechaHora(DateTime.now().toIso8601String()),
               ),
             ],
           ),
           if (descripcion.isNotEmpty) ...[
             pw.SizedBox(height: 12),
             pw.Text(
-              'Descripcion inicial:',
+              l10n.reclamoPdfDescripcionInicial,
               style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
             ),
             pw.Text(descripcion),
@@ -889,7 +1017,7 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
           if (participantes.isNotEmpty) ...[
             pw.SizedBox(height: 16),
             pw.Text(
-              'Participantes del reclamo',
+              l10n.reclamoPdfParticipantes,
               style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
             ),
             pw.SizedBox(height: 4),
@@ -897,15 +1025,19 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
           ],
           pw.SizedBox(height: 16),
           pw.Text(
-            'Conversacion del reclamo',
+            l10n.reclamoPdfConversacion,
             style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
           ),
           pw.SizedBox(height: 6),
           if (mensajesRows.isEmpty)
-            pw.Text('No hay mensajes registrados para este reclamo.')
+            pw.Text(l10n.reclamoPdfMensajesVacios)
           else
             pw.TableHelper.fromTextArray(
-              headers: const ['Fecha', 'Emisor', 'Mensaje'],
+              headers: [
+                l10n.reclamoPdfColFechaHora,
+                l10n.reclamoPdfColEmisor,
+                l10n.reclamoPdfColMensaje,
+              ],
               data: mensajesRows,
               headerStyle: pw.TextStyle(
                 fontWeight: pw.FontWeight.bold,
@@ -922,6 +1054,63 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
                 2: const pw.FlexColumnWidth(),
               },
             ),
+          if (_adjuntos.isNotEmpty) ...[
+            pw.SizedBox(height: 16),
+            pw.Text(
+              l10n.reclamoPdfAdjuntosTitulo,
+              style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+            ),
+            pw.SizedBox(height: 6),
+            pw.TableHelper.fromTextArray(
+              headers: [
+                l10n.reclamoPdfAdjuntosColNumero,
+                l10n.reclamoPdfAdjuntosColAutor,
+                l10n.reclamoPdfAdjuntosColTipo,
+                l10n.reclamoPdfAdjuntosColNombre,
+              ],
+              data: _adjuntos.asMap().entries.map((entry) {
+                final index = entry.key + 1;
+                final a = entry.value;
+                final autorRol = a['autor_rol']?.toString();
+                final autorNombre = (a['autor_nombre'] ?? '').toString().trim();
+                final nombreLabel = autorNombre.isEmpty
+                    ? l10n.genericUser
+                    : autorNombre;
+                final autorLabel = _buildEmisorLabelForPdf(
+                  nombreLabel,
+                  autorRol,
+                  unidadCodigo,
+                  consorcioNombre,
+                  l10n,
+                  includeLocation: false,
+                  includeAdminLocation: false,
+                );
+                final archivoNombre =
+                    (a['archivo_nombre'] ?? a['url_archivo'] ?? '').toString();
+                final tipoLabel = _formatTipoAdjuntoPorNombre(
+                  archivoNombre,
+                  a['mime_type']?.toString(),
+                  l10n,
+                );
+                return [index.toString(), autorLabel, tipoLabel, archivoNombre];
+              }).toList(),
+              headerStyle: pw.TextStyle(
+                fontWeight: pw.FontWeight.bold,
+                fontSize: 11,
+              ),
+              headerDecoration: const pw.BoxDecoration(
+                color: PdfColor.fromInt(0xFFE0E0E0),
+              ),
+              cellStyle: const pw.TextStyle(fontSize: 10),
+              cellAlignment: pw.Alignment.topLeft,
+              columnWidths: {
+                0: const pw.FixedColumnWidth(30),
+                1: const pw.FixedColumnWidth(150),
+                2: const pw.FixedColumnWidth(60),
+                3: const pw.FlexColumnWidth(),
+              },
+            ),
+          ],
         ],
       ),
     );
@@ -931,8 +1120,9 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
 
   Future<void> _exportPdf() async {
     final contexto = context.read<CurrentContextNotifier>().current;
-    final unidadCodigo =
-        (_reclamo?['unidad']?['codigo'] ?? '').toString().trim();
+    final unidadCodigo = (_reclamo?['unidad']?['codigo'] ?? '')
+        .toString()
+        .trim();
     final safeUnidad = unidadCodigo.isEmpty ? 'sin_unidad' : unidadCodigo;
     final fileName =
         'reclamo_${contexto?.consorcioNombre ?? 'consorcio'}_$safeUnidad.pdf';
@@ -1023,20 +1213,11 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      _InfoChip(
-                        label: 'Tipo',
-                        value: tipoLabel,
-                      ),
+                      _InfoChip(label: 'Tipo', value: tipoLabel),
                       const SizedBox(width: 8),
-                      _InfoChip(
-                        label: 'Unidad',
-                        value: unidadLabel,
-                      ),
+                      _InfoChip(label: 'Unidad', value: unidadLabel),
                       const SizedBox(width: 8),
-                      _InfoChip(
-                        label: 'Prioridad',
-                        value: prioridadValue,
-                      ),
+                      _InfoChip(label: 'Prioridad', value: prioridadValue),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -1118,15 +1299,16 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
                 ? const _ReclamoEmptyHint()
                 : ListView.builder(
                     controller: _scrollController,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     itemCount: _mensajes.length,
                     itemBuilder: (context, index) {
                       final m = _mensajes[index];
                       final esMio = m['usuario_id'] == userId;
 
-                      final fechaStr =
-                          formatShortDateFromIso(m['fecha_mensaje']);
+                      final fechaHora = _formatFechaHora(m['fecha_mensaje']);
 
                       final usuarioMap =
                           (m['usuario'] as Map<String, dynamic>?) ??
@@ -1134,6 +1316,9 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
                       final nombreOtro = (usuarioMap['nombre'] ?? '')
                           .toString()
                           .trim();
+                      final nombreLabel = nombreOtro.isEmpty
+                          ? l10n.genericUser
+                          : nombreOtro;
 
                       String? autorRol;
                       final autorRolRaw = m['autor_rol'];
@@ -1144,32 +1329,49 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
                         autorRol = null;
                       }
 
+                      final autorEsAdmin =
+                          autorRol == 'ADMIN_CONSORCIO' || autorRol == null;
+
                       String etiqueta;
                       if (esMio) {
-                        final miRolLabel = authorLabel(
+                        final miRolLabel = roleLabel(
                           context,
-                          isAdmin: contexto?.rol == 'ADMIN_CONSORCIO',
-                          rol: contexto?.rol,
+                          contexto?.rol ?? '',
                         );
-                        final partes = <String>[miRolLabel];
-                        if (contexto?.consorcioNombre != null) {
-                          partes.add(contexto!.consorcioNombre);
+                        final partes = <String>[l10n.selfLabel];
+                        if (miRolLabel.isNotEmpty) {
+                          partes.add(miRolLabel);
                         }
-                        partes.add(fechaStr);
+                        if (unidadCodigo.isNotEmpty) {
+                          partes.add(unidadCodigo);
+                        }
+                        if (fechaHora.isNotEmpty) {
+                          partes.add(fechaHora);
+                        }
+                        etiqueta = partes.join(' - ');
+                      } else if (autorEsAdmin) {
+                        final consorcioNombre =
+                            contexto?.consorcioNombre.trim() ?? '';
+                        final partes = <String>[l10n.roleAdmin, nombreLabel];
+                        if (consorcioNombre.isNotEmpty) {
+                          partes.add(consorcioNombre);
+                        }
+                        if (fechaHora.isNotEmpty) {
+                          partes.add(fechaHora);
+                        }
                         etiqueta = partes.join(' - ');
                       } else {
-                        final rolAutorLabel = authorLabel(
-                          context,
-                          isAdmin: autorRol == 'ADMIN_CONSORCIO',
-                          rol: autorRol,
-                        );
-                        final nombreLabel =
-                            nombreOtro.isEmpty ? l10n.genericUser : nombreOtro;
-                        final partes = <String>[rolAutorLabel, nombreLabel];
+                        final rolAutorLabel = roleLabel(context, autorRol);
+                        final partes = <String>[nombreLabel];
                         if (unidadCodigo.isNotEmpty) {
-                          partes.add('${l10n.unitLabel} $unidadCodigo');
+                          partes.add(unidadCodigo);
                         }
-                        partes.add(fechaStr);
+                        if (rolAutorLabel.isNotEmpty) {
+                          partes.add(rolAutorLabel);
+                        }
+                        if (fechaHora.isNotEmpty) {
+                          partes.add(fechaHora);
+                        }
                         etiqueta = partes.join(' - ');
                       }
 
@@ -1191,8 +1393,9 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
                             ),
                             decoration: BoxDecoration(
                               color: esMio
-                                  ? const Color(0xFF2E7D32)
-                                      .withValues(alpha: 0.15)
+                                  ? const Color(
+                                      0xFF2E7D32,
+                                    ).withValues(alpha: 0.15)
                                   : Colors.grey.shade300,
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -1271,4 +1474,8 @@ class _ReclamoDetailScreenState extends State<ReclamoDetailScreen> {
     );
   }
 }
+
+
+
+
 
