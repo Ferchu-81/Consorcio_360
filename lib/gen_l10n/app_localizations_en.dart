@@ -21,13 +21,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationsTitle => 'Notifications';
 
   @override
+  String get notificationsInboxTitle => 'Notifications';
+
+  @override
+  String get notificationsMarkAllRead => 'Mark all as read';
+
+  @override
   String get notificationsLoadError => 'Error loading notifications.';
 
   @override
   String get notificationsRetry => 'Retry';
 
   @override
-  String get notificationsEmpty => 'No notifications right now.';
+  String get notificationsEmpty => 'You don\'t have notifications yet.';
 
   @override
   String get notificationsNoDestination => 'Notification has no destination.';
@@ -138,6 +144,78 @@ class AppLocalizationsEn extends AppLocalizations {
   String get genericUser => 'User';
 
   @override
+  String get selfLabel => 'Me';
+
+  @override
+  String get reclamoPdfTitle => 'Claim record';
+
+  @override
+  String get reclamoPdfConsorcio => 'Building';
+
+  @override
+  String get reclamoPdfUnidad => 'Unit';
+
+  @override
+  String get reclamoPdfTitulo => 'Title';
+
+  @override
+  String get reclamoPdfTipo => 'Type';
+
+  @override
+  String get reclamoPdfEstado => 'Status';
+
+  @override
+  String get reclamoPdfPrioridad => 'Priority';
+
+  @override
+  String get reclamoPdfFechaEmision => 'Issued date';
+
+  @override
+  String get reclamoPdfDescripcionInicial => 'Initial description:';
+
+  @override
+  String get reclamoPdfParticipantes => 'Claim participants';
+
+  @override
+  String get reclamoPdfConversacion => 'Claim conversation';
+
+  @override
+  String get reclamoPdfMensajesVacios => 'No messages recorded for this claim.';
+
+  @override
+  String get reclamoPdfColFechaHora => 'Date & time';
+
+  @override
+  String get reclamoPdfColEmisor => 'Sender';
+
+  @override
+  String get reclamoPdfColMensaje => 'Message';
+
+  @override
+  String get reclamoPdfAdjuntosTitulo => 'Attachments';
+
+  @override
+  String get reclamoPdfAdjuntosColNumero => 'No.';
+
+  @override
+  String get reclamoPdfAdjuntosColAutor => 'Author';
+
+  @override
+  String get reclamoPdfAdjuntosColTipo => 'Type';
+
+  @override
+  String get reclamoPdfAdjuntosColNombre => 'File';
+
+  @override
+  String get reclamoAdjuntoTipoPdf => 'PDF';
+
+  @override
+  String get reclamoAdjuntoTipoImagen => 'Image';
+
+  @override
+  String get reclamoAdjuntoTipoDesconocido => 'Unknown';
+
+  @override
   String get roleTenant => 'Tenant';
 
   @override
@@ -173,4 +251,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unit => 'Unit';
+
+  @override
+  String get settingsAppVersion => 'App version';
 }

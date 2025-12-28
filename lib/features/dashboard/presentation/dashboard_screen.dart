@@ -2,7 +2,9 @@
 import 'package:consorcio_360/core/i18n/role_label.dart';
 import 'package:consorcio_360/data/models/usuario_contexto.dart';
 import 'package:consorcio_360/features/context/presentation/context_selection_screen.dart';
+import 'package:consorcio_360/features/notifications/notifications_inbox_screen.dart';
 import 'package:consorcio_360/features/reclamos/presentation/main_home_screen.dart';
+import 'package:consorcio_360/gen_l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -31,11 +33,23 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final nombre = _displayName(contexto.nombre);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
         title: Text('Consorcio 360 - ${contexto.consorcioNombre}'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none),
+            tooltip: l10n.notificationsInboxTitle,
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const NotificationsInboxScreen(),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.swap_horiz),
             tooltip: 'Cambiar contexto',

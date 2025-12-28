@@ -124,6 +124,18 @@ abstract class AppLocalizations {
   /// **'Notificaciones'**
   String get notificationsTitle;
 
+  /// No description provided for @notificationsInboxTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Notificaciones'**
+  String get notificationsInboxTitle;
+
+  /// No description provided for @notificationsMarkAllRead.
+  ///
+  /// In es, this message translates to:
+  /// **'Marcar todo como leído'**
+  String get notificationsMarkAllRead;
+
   /// No description provided for @notificationsLoadError.
   ///
   /// In es, this message translates to:
@@ -139,7 +151,7 @@ abstract class AppLocalizations {
   /// No description provided for @notificationsEmpty.
   ///
   /// In es, this message translates to:
-  /// **'No hay notificaciones por ahora.'**
+  /// **'No tenés notificaciones todavía.'**
   String get notificationsEmpty;
 
   /// No description provided for @notificationsNoDestination.
@@ -346,6 +358,150 @@ abstract class AppLocalizations {
   /// **'Usuario'**
   String get genericUser;
 
+  /// No description provided for @selfLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Yo'**
+  String get selfLabel;
+
+  /// No description provided for @reclamoPdfTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Expediente de reclamo'**
+  String get reclamoPdfTitle;
+
+  /// No description provided for @reclamoPdfConsorcio.
+  ///
+  /// In es, this message translates to:
+  /// **'Consorcio'**
+  String get reclamoPdfConsorcio;
+
+  /// No description provided for @reclamoPdfUnidad.
+  ///
+  /// In es, this message translates to:
+  /// **'Unidad'**
+  String get reclamoPdfUnidad;
+
+  /// No description provided for @reclamoPdfTitulo.
+  ///
+  /// In es, this message translates to:
+  /// **'Titulo'**
+  String get reclamoPdfTitulo;
+
+  /// No description provided for @reclamoPdfTipo.
+  ///
+  /// In es, this message translates to:
+  /// **'Tipo'**
+  String get reclamoPdfTipo;
+
+  /// No description provided for @reclamoPdfEstado.
+  ///
+  /// In es, this message translates to:
+  /// **'Estado'**
+  String get reclamoPdfEstado;
+
+  /// No description provided for @reclamoPdfPrioridad.
+  ///
+  /// In es, this message translates to:
+  /// **'Prioridad'**
+  String get reclamoPdfPrioridad;
+
+  /// No description provided for @reclamoPdfFechaEmision.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha emision'**
+  String get reclamoPdfFechaEmision;
+
+  /// No description provided for @reclamoPdfDescripcionInicial.
+  ///
+  /// In es, this message translates to:
+  /// **'Descripcion inicial:'**
+  String get reclamoPdfDescripcionInicial;
+
+  /// No description provided for @reclamoPdfParticipantes.
+  ///
+  /// In es, this message translates to:
+  /// **'Participantes del reclamo'**
+  String get reclamoPdfParticipantes;
+
+  /// No description provided for @reclamoPdfConversacion.
+  ///
+  /// In es, this message translates to:
+  /// **'Conversacion del reclamo'**
+  String get reclamoPdfConversacion;
+
+  /// No description provided for @reclamoPdfMensajesVacios.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay mensajes registrados para este reclamo.'**
+  String get reclamoPdfMensajesVacios;
+
+  /// No description provided for @reclamoPdfColFechaHora.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha y hora'**
+  String get reclamoPdfColFechaHora;
+
+  /// No description provided for @reclamoPdfColEmisor.
+  ///
+  /// In es, this message translates to:
+  /// **'Emisor'**
+  String get reclamoPdfColEmisor;
+
+  /// No description provided for @reclamoPdfColMensaje.
+  ///
+  /// In es, this message translates to:
+  /// **'Mensaje'**
+  String get reclamoPdfColMensaje;
+
+  /// No description provided for @reclamoPdfAdjuntosTitulo.
+  ///
+  /// In es, this message translates to:
+  /// **'Adjuntos'**
+  String get reclamoPdfAdjuntosTitulo;
+
+  /// No description provided for @reclamoPdfAdjuntosColNumero.
+  ///
+  /// In es, this message translates to:
+  /// **'N°'**
+  String get reclamoPdfAdjuntosColNumero;
+
+  /// No description provided for @reclamoPdfAdjuntosColAutor.
+  ///
+  /// In es, this message translates to:
+  /// **'Autor'**
+  String get reclamoPdfAdjuntosColAutor;
+
+  /// No description provided for @reclamoPdfAdjuntosColTipo.
+  ///
+  /// In es, this message translates to:
+  /// **'Tipo'**
+  String get reclamoPdfAdjuntosColTipo;
+
+  /// No description provided for @reclamoPdfAdjuntosColNombre.
+  ///
+  /// In es, this message translates to:
+  /// **'Archivo'**
+  String get reclamoPdfAdjuntosColNombre;
+
+  /// No description provided for @reclamoAdjuntoTipoPdf.
+  ///
+  /// In es, this message translates to:
+  /// **'PDF'**
+  String get reclamoAdjuntoTipoPdf;
+
+  /// No description provided for @reclamoAdjuntoTipoImagen.
+  ///
+  /// In es, this message translates to:
+  /// **'Imagen'**
+  String get reclamoAdjuntoTipoImagen;
+
+  /// No description provided for @reclamoAdjuntoTipoDesconocido.
+  ///
+  /// In es, this message translates to:
+  /// **'Desconocido'**
+  String get reclamoAdjuntoTipoDesconocido;
+
   /// No description provided for @roleTenant.
   ///
   /// In es, this message translates to:
@@ -411,6 +567,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Unidad'**
   String get unit;
+
+  /// No description provided for @settingsAppVersion.
+  ///
+  /// In es, this message translates to:
+  /// **'Versión de la app'**
+  String get settingsAppVersion;
 }
 
 class _AppLocalizationsDelegate

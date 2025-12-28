@@ -4,7 +4,7 @@ import 'package:consorcio_360/features/auth/presentation/login_screen.dart';
 import 'package:consorcio_360/features/context/presentation/context_selection_screen.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensas_tab.dart';
 import 'package:consorcio_360/features/home/presentation/dashboard_tab.dart';
-import 'package:consorcio_360/features/notifications/presentation/notifications_screen.dart';
+import 'package:consorcio_360/features/notifications/notifications_inbox_screen.dart';
 import 'package:consorcio_360/features/pagos/presentation/pagos_tab.dart';
 import 'package:consorcio_360/features/settings/presentation/settings_screen.dart';
 import 'package:consorcio_360/gen_l10n/app_localizations.dart';
@@ -136,7 +136,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
 
   Future<void> _openNotifications() async {
     await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+      MaterialPageRoute(builder: (_) => const NotificationsInboxScreen()),
     );
     if (!mounted) return;
     await _loadUnreadCount();
