@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:consorcio_360/data/models/expensa.dart';
 import 'package:consorcio_360/data/models/pago_expensa.dart';
+import 'package:consorcio_360/shared/pdf/pdf_theme.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
@@ -17,7 +18,8 @@ class ExpensaPdfService {
     required String moradorNombre,
     required PagoExpensa pago,
   }) async {
-    final pdf = pw.Document();
+    final theme = await PdfThemeLoader.load();
+    final pdf = pw.Document(theme: theme);
 
     pdf.addPage(
       pw.Page(
@@ -156,7 +158,8 @@ class ExpensaPdfService {
     required String unidadCodigo,
     required String moradorNombre,
   }) async {
-    final pdf = pw.Document();
+    final theme = await PdfThemeLoader.load();
+    final pdf = pw.Document(theme: theme);
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,

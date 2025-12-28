@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:consorcio_360/data/models/expensa.dart';
 import 'package:consorcio_360/data/models/pago_expensa.dart';
+import 'package:consorcio_360/shared/pdf/pdf_theme.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
@@ -13,7 +14,8 @@ Future<Uint8List> buildExpensaFacturaPdfA4({
   required String unidadCodigo,
   PagoExpensa? pago,
 }) async {
-  final doc = pw.Document();
+  final theme = await PdfThemeLoader.load();
+  final doc = pw.Document(theme: theme);
 
   final periodoStr =
       '${expensa.periodo.month.toString().padLeft(2, '0')}/${expensa.periodo.year}';
