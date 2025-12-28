@@ -8,6 +8,7 @@ import 'package:consorcio_360/features/notifications/notifications_inbox_screen.
 import 'package:consorcio_360/features/pagos/presentation/pagos_tab.dart';
 import 'package:consorcio_360/features/settings/presentation/settings_screen.dart';
 import 'package:consorcio_360/gen_l10n/app_localizations.dart';
+import 'package:consorcio_360/core/services/push_token_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -35,6 +36,13 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
   void initState() {
     super.initState();
     _loadUnreadCount();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        await PushTokenService.instance.ensureInitializedAndSync();
+      } catch (_) {
+        // si falla el push, NO debe romper la app
+      }
+    });
   }
 
   void _onTabTapped(int index) {

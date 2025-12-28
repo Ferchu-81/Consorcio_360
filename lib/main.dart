@@ -6,7 +6,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app.dart';
 import 'core/config/supabase_config.dart';
 import 'core/state/current_context_notifier.dart';
-import 'data/services/push_token_service.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -21,7 +20,6 @@ Future<void> main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    await PushTokenService.start();
   } catch (_) {}
 
   runApp(
