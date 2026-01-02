@@ -1,4 +1,4 @@
-﻿import 'dart:typed_data';
+import 'dart:typed_data';
 
 import 'package:consorcio_360/core/i18n/role_label.dart';
 import 'package:consorcio_360/core/state/current_context_notifier.dart';

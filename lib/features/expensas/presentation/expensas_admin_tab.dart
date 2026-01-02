@@ -1,4 +1,4 @@
-﻿import 'package:consorcio_360/data/models/expensa.dart';
+import 'package:consorcio_360/data/models/expensa.dart';
 import 'package:consorcio_360/data/repositories/expensas_repository.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensa_admin_detail_screen.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensas_utils.dart';

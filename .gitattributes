@@ -1,4 +1,4 @@
-﻿# Default: keep repo normalized to LF
+# Default: keep repo normalized to LF
 * text=auto eol=lf
 
 # Windows scripts keep CRLF (si los usás)

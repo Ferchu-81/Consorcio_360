@@ -1,0 +1,143 @@
+
+
+projectId: 'consorcio-360-2c56d',
+
+
+Crear un secreto interno (PUSH_INTERNAL_SECRET)
+Generá uno random (PowerShell):
+
+PS D:\IUA\6to SEMESTRE\TALLER DE DESARROLLO DE APLICACIONES\App Consorcio 360\consorcio_360> $secret = -join ((48..57)+(65..90)+(97..122) | Get-Random -Count 48 | ForEach-Object {[char]$_})
+PS D:\IUA\6to SEMESTRE\TALLER DE DESARROLLO DE APLICACIONES\App Consorcio 360\consorcio_360> $secret
+Uy9XPvKHdoJRbrxhOtAESGgLc2wMT1Yle05aWfC43kusB8zm
+PS D:\IUA\6to SEMESTRE\TALLER DE DESARROLLO DE APLICACIONES\App Consorcio 360\consorcio_360>
+PS D:\IUA\6to SEMESTRE\TALLER DE DESARROLLO DE APLICACIONES\App Consorcio 360\consorcio_360> $PROJECT_REF = "whgdymgatbkadyejvfhu"
+PS D:\IUA\6to SEMESTRE\TALLER DE DESARROLLO DE APLICACIONES\App Consorcio 360\consorcio_360> $FCM_PROJECT_ID = "consorcio-360-2c56d"
+PS D:\IUA\6to SEMESTRE\TALLER DE DESARROLLO DE APLICACIONES\App Consorcio 360\consorcio_360> $PROJECT_REF
+whgdymgatbkadyejvfhu
+PS D:\IUA\6to SEMESTRE\TALLER DE DESARROLLO DE APLICACIONES\App Consorcio 360\consorcio_360> $PROJECT_REF.Length
+20
+PS D:\IUA\6to SEMESTRE\TALLER DE DESARROLLO DE APLICACIONES\App Consorcio 360\consorcio_360> supabase secrets set --project-ref $PROJECT_REF `
+>>   PUSH_INTERNAL_SECRET="Uy9XPvKHdoJRbrxhOtAESGgLc2wMT1Yle05aWfC43kusB8zm" `
+>>   FCM_PROJECT_ID="$FCM_PROJECT_ID" `
+>>   GOOGLE_SERVICE_ACCOUNT_JSON_B64="$saB64"
+Finished supabase secrets set.
+PS D:\IUA\6to SEMESTRE\TALLER DE DESARROLLO DE APLICACIONES\App Consorcio 360\consorcio_360> supabase secrets list --project-ref $PROJECT_REF
+
+
+   NAME                            | DIGEST
+  ---------------------------------|------------------------------------------------------------------
+   FCM_PROJECT_ID                  | e7eb71191ae02f6c2abec4feb737e2aa1c2954f2ed9427d50fe82f0a023e0079
+   GOOGLE_SERVICE_ACCOUNT_JSON_B64 | a8aec1e7a8cea0c600549852383e6a12cd4a8093fca54bab4ad65400ddcf52cc
+   MP_ACCESS_TOKEN                 | 4e7fb8eb565e086be22c1af8e4543c8a1b71cb86a1de30dc0d4deaf3d3b1b42e
+   PUSH_INTERNAL_SECRET            | 1612c02334d5069088d8165e1dbb7caae098e534e3abbbe7654304237dbb7b8a
+   SUPABASE_ANON_KEY               | c46a5062bc48ce0ff55d2cf2200071031a93c7079ebbdda3a59ad03587c2f465
+   SUPABASE_DB_URL                 | 91955c238f2039106ac82afc7cebd0db97415a6e6a9800185dacf74726cd2ff5
+   SUPABASE_SERVICE_ROLE_KEY       | a2a3970913d5f11551155109cf8e9255be7bb9f27b1566f8408fab60e1304ebc
+   SUPABASE_URL                    | e34df44e72ae17515af5ae9e5c1af6b8619d52b32efd9beeaa5b857826f0df6a
+
+PS D:\IUA\6to SEMESTRE\TALLER DE DESARROLLO DE APLICACIONES\App Consorcio 360\consorcio_360>
+
+
+------------------------------------------------------------------
+📝 Entendiendo la salida del comando
+
+Tu configuración local está lista y te proporciona acceso a todas estas herramientas:
+Elemento					URL / Credencial			Para qué sirve
+Supabase Studio (Interfaz Gráfica)		http://127.0.0.1:54323			Gestionar tu base de datos como en la web.
+URL de la API del Proyecto			http://127.0.0.1:54321			Punto de entrada para todas las API (REST, GraphQL).
+Base de Datos (PostgreSQL)			postgresql://postgres:postgres@...	Cadena de conexión para conectarte con psql u otras herramientas.
+Claves de Autenticación				sb_publishable_... y sb_secret_...	Para conectar tu aplicación (frontend y backend).
+Credenciales de Storage (S3)			Access Key y Secret Key			Para usar el servicio de almacenamiento local.
+
+    Nota sobre la advertencia: El WARNING sobre "Analytics on Windows" es solo para una funcionalidad específica. Puedes ignorarlo por ahora, ya que el resto de los servicios funcionan sin problemas. Si en el futuro quieres habilitarla, sigue el enlace que aparece en el mensaje 
+
+
+
+
+PS D:\IUA\6to SEMESTRE\TALLER DE DESARROLLO DE APLICACIONES\App Consorcio 360\consorcio_360> supabase start
+[+] Pulling 13/55
+ ✔ studio Skipped - Image is already present locally                                                               0.0s
+ ✔ analytics Skipped - Image is already present locally                                                            0.0s
+ ✔ api Skipped - Image is already present locally                                                                  0.0s
+ ✔ auth Skipped - Image is already present locally                                                                 0.0s
+ ✔ edgeRuntime Skipped - Image is already present locally                                                          0.0s
+ ✔ vector Skipped - Image is already present locally                                                               0.0s
+ ✔ realtime Skipped - Image is already present locally                                                             0.0s
+ ✔ pgmeta Skipped - Image is already present locally                                                               0.0s
+ ✔ gateway Skipped - Image is already present locally                                                              0.0s
+ ✔ mailpit Skipped - Image is already present locally                                                              0.0s
+ ✔ storage Skipped - Image is already present locally                                                              0.0s
+ ✔ imgProxy Skipped - Image is already present locally                                                             0.0s
+ ✔ postgres Pulled                                                                                                88.8s
+Starting database...
+Initialising schema...
+Seeding globals from roles.sql...
+WARN: no files matched pattern: supabase/seed.sql
+Starting containers...
+WARNING: Analytics on Windows requires Docker daemon exposed on tcp://localhost:2375.
+See https://supabase.com/docs/guides/local-development/cli/getting-started?queryGroups=platform&platform=windows#running-supabase-locally for more details.
+Waiting for health checks...
+Started supabase local development setup.
+
+╭──────────────────────────────────────╮
+│ 🔧 Development Tools                 │
+├─────────┬────────────────────────────┤
+│ Studio  │ http://127.0.0.1:54323     │
+│ Mailpit │ http://127.0.0.1:54324     │
+│ MCP     │ http://127.0.0.1:54321/mcp │
+╰─────────┴────────────────────────────╯
+
+╭──────────────────────────────────────────────────────╮
+│ 🌐 APIs                                              │
+├────────────────┬─────────────────────────────────────┤
+│ Project URL    │ http://127.0.0.1:54321              │
+│ REST           │ http://127.0.0.1:54321/rest/v1      │
+│ GraphQL        │ http://127.0.0.1:54321/graphql/v1   │
+│ Edge Functions │ http://127.0.0.1:54321/functions/v1 │
+╰────────────────┴─────────────────────────────────────╯
+
+╭───────────────────────────────────────────────────────────────╮
+│ ⛁ Database                                                    │
+├─────┬─────────────────────────────────────────────────────────┤
+│ URL │ postgresql://postgres:postgres@127.0.0.1:54322/postgres │
+╰─────┴─────────────────────────────────────────────────────────╯
+
+╭──────────────────────────────────────────────────────────────╮
+│ 🔑 Authentication Keys                                       │
+├─────────────┬────────────────────────────────────────────────┤
+│ Publishable │ sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH │
+│ Secret      │ sb_secret_N7UND0UgjKTVK-Uodkm0Hg_xSvEMPvz      │
+╰─────────────┴────────────────────────────────────────────────╯
+
+╭───────────────────────────────────────────────────────────────────────────────╮
+│ 📦 Storage (S3)                                                               │
+├────────────┬──────────────────────────────────────────────────────────────────┤
+│ URL        │ http://127.0.0.1:54321/storage/v1/s3                             │
+│ Access Key │ 625729a08b95bf1b7ff351a663f3a23c                                 │
+│ Secret Key │ 850181e4652dd023b7a98c58ae0d2d34bd487ee0cc3254aed6eda37307425907 │
+│ Region     │ local                                                            │
+╰────────────┴──────────────────────────────────────────────────────────────────╯
+
+PS D:\IUA\6to SEMESTRE\TALLER DE DESARROLLO DE APLICACIONES\App Consorcio 360\consorcio_360>
+
+
+
+
+PS D:\IUA\6to SEMESTRE\TALLER DE DESARROLLO DE APLICACIONES\App Consorcio 360\consorcio_360> supabase login
+Hello from Supabase! Press Enter to open browser and login automatically.
+
+Here is your login link in case browser did not open https://supabase.com/dashboard/cli/login?session_id=6d95cd18-243a-4579-a452-acd7cbfc7d2e&token_name=cli_FER-ASUS\FerTo@Fer-ASUS_1766964474&public_key=048ea45bee10dad65f162ea4e32830e2f7fcd87f7740a8da09c634f253e3d4e755a074c76e9fc0aed620b5e185165f83cfa666fc86304af902f6c84660ebf63d34
+
+Enter your verification code: e3efae6b
+Token cli_FER-ASUS\FerTo@Fer-ASUS_1766964474 created successfully.
+
+You are now logged in. Happy coding!
+PS D:\IUA\6to SEMESTRE\TALLER DE DESARROLLO DE APLICACIONES\App Consorcio 360\consorcio_360> supabase projects list
+Cannot find project ref. Have you run supabase link?
+
+
+   LINKED | ORG ID               | REFERENCE ID         | NAME                | REGION                    | CREATED AT (UTC)
+  --------|----------------------|----------------------|---------------------|---------------------------|---------------------
+          | mdgscwcgaatrouaiqoja | whgdymgatbkadyejvfhu | Consorcio 360 Tesis | South America (São Paulo) | 2025-11-19 22:17:11
+
+PS D:\IUA\6to SEMESTRE\TALLER DE DESARROLLO DE APLICACIONES\App Consorcio 360\consorcio_360>

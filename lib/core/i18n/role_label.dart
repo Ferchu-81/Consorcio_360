@@ -1,4 +1,4 @@
-﻿import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart';
 import 'package:consorcio_360/gen_l10n/app_localizations.dart';
 
 /// Labels de rol para UI (DB sigue igual: ADMIN_CONSORCIO / PROPIETARIO / MORADOR).

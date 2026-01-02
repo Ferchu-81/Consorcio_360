@@ -1,4 +1,4 @@
-﻿import 'package:consorcio_360/features/settings/domain/consorcio_config.dart';
+import 'package:consorcio_360/features/settings/domain/consorcio_config.dart';
 import 'package:flutter/material.dart';
 import 'package:consorcio_360/gen_l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';

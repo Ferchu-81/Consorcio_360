@@ -1,4 +1,4 @@
-﻿import 'package:consorcio_360/features/settings/domain/consorcio_config.dart';
+import 'package:consorcio_360/features/settings/domain/consorcio_config.dart';
 
 bool puedeUsarAmenities({
   required String rol,

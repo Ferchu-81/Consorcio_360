@@ -1,4 +1,4 @@
-﻿import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart';
 import 'package:consorcio_360/gen_l10n/app_localizations.dart';
 
 /// Roles "de sistema" (cÃ³digos DB) -> rol de actor en UI.

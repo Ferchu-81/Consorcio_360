@@ -1,4 +1,4 @@
-﻿import 'package:consorcio_360/core/state/current_context_notifier.dart';
+import 'package:consorcio_360/core/state/current_context_notifier.dart';
 import 'package:consorcio_360/core/i18n/role_label.dart';
 import 'package:consorcio_360/features/auth/presentation/login_screen.dart';
 import 'package:consorcio_360/features/context/presentation/context_selection_screen.dart';

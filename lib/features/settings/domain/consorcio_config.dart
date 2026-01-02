@@ -1,4 +1,4 @@
-﻿class ConsorcioConfig {
+class ConsorcioConfig {
   final String consorcioId;
 
   /// Unificado: si es TRUE, el propietario NO ocupante puede usar/reservar amenities.

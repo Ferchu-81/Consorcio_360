@@ -1,4 +1,4 @@
-﻿import 'package:consorcio_360/core/services/context_storage.dart';
+import 'package:consorcio_360/core/services/context_storage.dart';
 import 'package:consorcio_360/core/state/current_context_notifier.dart';
 import 'package:consorcio_360/core/i18n/role_label.dart';
 import 'package:consorcio_360/data/models/usuario_contexto.dart';

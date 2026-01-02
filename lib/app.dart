@@ -1,4 +1,4 @@
-﻿import 'package:consorcio_360/features/root/presentation/root_screen.dart';
+import 'package:consorcio_360/features/root/presentation/root_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
