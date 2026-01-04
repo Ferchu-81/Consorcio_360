@@ -3,6 +3,10 @@
 projectId: 'consorcio-360-2c56d',
 
 
+03/01/26 15:00hs
+PS D:\IUA\6to SEMESTRE\TALLER DE DESARROLLO DE APLICACIONES\App Consorcio 360\consorcio_360> $NEW_SECRET
+68cf6807d6b04aeb968022e09f24255d682eef6f4615461a803119c56f194dab
+
 Crear un secreto interno (PUSH_INTERNAL_SECRET)
 Generá uno random (PowerShell):
 
