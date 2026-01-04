@@ -17,6 +17,22 @@ type NotifyEventBody = {
   target_usuario_ids?: string[]; // opcional: si viene, no calculamos admins
 };
 
+function buildBaseData(
+  data: Record<string, unknown> | undefined,
+  consorcioId: string,
+  unidadId: string | null,
+  eventType: string,
+) {
+  const base: Record<string, unknown> = { ...(data ?? {}) };
+  if (!("deeplink" in base)) base.deeplink = "notif_inbox";
+  base.consorcio_id = consorcioId;
+  if (unidadId && unidadId.trim().length > 0) {
+    base.unidad_id = unidadId;
+  }
+  base.event_type = eventType;
+  return base;
+}
+
 function normalizeData(data: Record<string, unknown> | undefined) {
   const out: Record<string, string> = {};
   if (!data) return out;
@@ -46,7 +62,7 @@ Deno.serve(async (req: Request) => {
     const title = (payload.title ?? "").trim();
     const bodyText = (payload.body ?? "").trim();
     const actorUserId = (payload.actor_usuario_id ?? null) ? String(payload.actor_usuario_id).trim() : null;
-    const data = payload.data ?? {};
+    const payloadData = payload.data ?? {};
 
     if (!consorcioId || !eventType || !title || !bodyText) {
       return new Response("Missing consorcio_id/event_type/title/body", {
@@ -113,6 +129,8 @@ Deno.serve(async (req: Request) => {
     // 3) Para cada destinatario: aplicar preferencias (si no hay, default ON)
     const inAppRows: any[] = [];
     const pushTargets: string[] = [];
+    const baseData = buildBaseData(payloadData, consorcioId, unidadId, eventType);
+    const notificationIdByUser = new Map<string, string>();
 
     for (const uid of targets) {
       const userRol = rolByUser.get(uid) ?? null;
@@ -148,14 +166,17 @@ Deno.serve(async (req: Request) => {
       }
 
       if (inAppEnabled) {
+        const notificationId = crypto.randomUUID();
+        notificationIdByUser.set(uid, notificationId);
         inAppRows.push({
+          id: notificationId,
           usuario_id: uid,
           consorcio_id: consorcioId,
           unidad_id: unidadId,
           event_type: eventType,
           title,
           body: bodyText,
-          data,
+          data: { ...baseData, notification_id: notificationId },
         });
       }
 
@@ -186,7 +207,12 @@ Deno.serve(async (req: Request) => {
           usuario_id: uid,
           title,
           body: bodyText,
-          data: normalizeData(data),
+          data: normalizeData({
+            ...baseData,
+            ...(notificationIdByUser.has(uid)
+              ? { notification_id: notificationIdByUser.get(uid) }
+              : {}),
+          }),
         }),
       });
 
