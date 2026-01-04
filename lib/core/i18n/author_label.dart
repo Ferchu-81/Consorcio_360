@@ -6,7 +6,7 @@ import 'package:consorcio_360/core/i18n/role_label.dart';
 /// Regla:
 /// - si es admin (o rol == ADMIN_CONSORCIO) => "Administrador"
 /// - si rol conocido => roleLabel(...) (Propietario / Inquilino)
-/// - si no => "Vecino"
+/// - si no => "Usuario"
 String authorLabel(
   BuildContext context, {
   required bool isAdmin,
@@ -22,5 +22,5 @@ String authorLabel(
     return roleLabel(context, rol);
   }
 
-  return l10n.neighbor;
+  return l10n.genericUser;
 }

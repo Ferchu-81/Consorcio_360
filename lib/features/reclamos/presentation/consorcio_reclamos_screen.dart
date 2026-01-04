@@ -1,12 +1,17 @@
+import 'dart:async';
+
 import 'package:consorcio_360/core/state/current_context_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'reclamo_detail_screen.dart';
 import 'reclamos_utils.dart';
 
 /// Pantalla de reclamos del consorcio (solo para ADMIN_CONSORCIO).
+const String _prefHelpEnabledKey = 'ui_help_enabled';
+
 class ConsorcioReclamosScreen extends StatefulWidget {
   final bool embeddedInHome;
 
@@ -25,6 +30,7 @@ class _ConsorcioReclamosScreenState extends State<ConsorcioReclamosScreen> {
   String _estadoFiltro = 'TODOS';
   String _prioridadFiltro = 'TODAS';
   String _unidadFiltroTexto = '';
+  bool _helpEnabled = true;
 
   final List<String> _estadosFiltro = const [
     'TODOS',
@@ -45,7 +51,15 @@ class _ConsorcioReclamosScreenState extends State<ConsorcioReclamosScreen> {
   @override
   void initState() {
     super.initState();
+    _loadHelpEnabled();
     _loadReclamosConsorcio();
+  }
+
+  Future<void> _loadHelpEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    final value = prefs.getBool(_prefHelpEnabledKey);
+    if (!mounted || value == null) return;
+    setState(() => _helpEnabled = value);
   }
 
   Future<void> _loadReclamosConsorcio() async {
@@ -181,10 +195,14 @@ class _ConsorcioReclamosScreenState extends State<ConsorcioReclamosScreen> {
                 children: [
                   Text(_error!, textAlign: TextAlign.center),
                   const SizedBox(height: 12),
-                  FilledButton.icon(
-                    onPressed: _loadReclamosConsorcio,
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Reintentar'),
+                  _HelpListener(
+                    helpEnabled: _helpEnabled,
+                    helpText: 'Volver a cargar reclamos del consorcio.',
+                    child: FilledButton.icon(
+                      onPressed: _loadReclamosConsorcio,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Reintentar'),
+                    ),
                   ),
                 ],
               ),
@@ -312,74 +330,81 @@ class _ConsorcioReclamosScreenState extends State<ConsorcioReclamosScreen> {
                               horizontal: 12,
                               vertical: 6,
                             ),
-                            child: ListTile(
+                            child: _HelpableTile(
+                              helpEnabled: _helpEnabled,
+                              helpText: 'Abrir detalle del reclamo.',
                               onTap: () => _openDetalle(r),
-                              title: Text(
-                                r['titulo']?.toString() ?? '(Sin titulo)',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
+                              child: ListTile(
+                                title: Text(
+                                  r['titulo']?.toString() ?? '(Sin titulo)',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Unidad $unidadCodigo - $creadorLabel',
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: _estadoColor(
+                                              estado,
+                                            ).withValues(alpha: 0.15),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            estadoLabel,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: _estadoColor(estado),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: _prioridadColor(
+                                              prioridad,
+                                            ).withValues(alpha: 0.15),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            'Prioridad: $prioridadLabel',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color:
+                                                  _prioridadColor(prioridad),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Fecha: $fechaStr',
+                                      style: theme.textTheme.bodySmall,
+                                    ),
+                                  ],
+                                ),
+                                trailing: const Icon(Icons.chevron_right),
                               ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Unidad $unidadCodigo - $creadorLabel'),
-                                  const SizedBox(height: 4),
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: _estadoColor(
-                                            estado,
-                                          ).withValues(alpha: 0.15),
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          estadoLabel,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: _estadoColor(estado),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: _prioridadColor(
-                                            prioridad,
-                                          ).withValues(alpha: 0.15),
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          'Prioridad: $prioridadLabel',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: _prioridadColor(prioridad),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Fecha: $fechaStr',
-                                    style: theme.textTheme.bodySmall,
-                                  ),
-                                ],
-                              ),
-                              trailing: const Icon(Icons.chevron_right),
                             ),
                           );
                         },
@@ -407,6 +432,129 @@ class _ConsorcioReclamosScreenState extends State<ConsorcioReclamosScreen> {
         ),
       ),
       body: _buildBody(context),
+    );
+  }
+}
+
+class _HelpListener extends StatefulWidget {
+  final bool helpEnabled;
+  final String helpText;
+  final Widget child;
+
+  const _HelpListener({
+    required this.helpEnabled,
+    required this.helpText,
+    required this.child,
+  });
+
+  @override
+  State<_HelpListener> createState() => _HelpListenerState();
+}
+
+class _HelpListenerState extends State<_HelpListener> {
+  Timer? _timer;
+
+  void _startTimer() {
+    if (!widget.helpEnabled || widget.helpText.trim().isEmpty) return;
+    _timer?.cancel();
+    _timer = Timer(const Duration(seconds: 1), () {
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
+        SnackBar(content: Text(widget.helpText)),
+      );
+    });
+  }
+
+  void _cancelTimer() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  @override
+  void dispose() {
+    _cancelTimer();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      onPointerDown: (_) => _startTimer(),
+      onPointerUp: (_) => _cancelTimer(),
+      onPointerCancel: (_) => _cancelTimer(),
+      child: widget.child,
+    );
+  }
+}
+
+class _HelpableTile extends StatefulWidget {
+  final bool helpEnabled;
+  final String helpText;
+  final Widget child;
+  final VoidCallback? onTap;
+
+  const _HelpableTile({
+    required this.helpEnabled,
+    required this.helpText,
+    required this.child,
+    this.onTap,
+  });
+
+  @override
+  State<_HelpableTile> createState() => _HelpableTileState();
+}
+
+class _HelpableTileState extends State<_HelpableTile> {
+  Timer? _timer;
+  bool _helpShown = false;
+
+  void _startTimer() {
+    if (!widget.helpEnabled || widget.helpText.trim().isEmpty) return;
+    _timer?.cancel();
+    _helpShown = false;
+    _timer = Timer(const Duration(seconds: 1), () {
+      if (!mounted) return;
+      _helpShown = true;
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
+        SnackBar(content: Text(widget.helpText)),
+      );
+    });
+  }
+
+  void _cancelTimer() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  void _handleTap() {
+    _cancelTimer();
+    if (_helpShown) {
+      _helpShown = false;
+      return;
+    }
+    widget.onTap?.call();
+  }
+
+  @override
+  void dispose() {
+    _cancelTimer();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTapDown: (_) => _startTimer(),
+        onTapCancel: _cancelTimer,
+        onTap: widget.onTap == null ? null : _handleTap,
+        child: widget.child,
+      ),
     );
   }
 }

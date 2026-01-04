@@ -1,10 +1,15 @@
+import 'dart:async';
+
 import 'package:consorcio_360/data/models/expensa.dart';
 import 'package:consorcio_360/data/repositories/expensas_repository.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensa_detail_screen.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensas_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Lista de expensas para el rol morador/propietario.
+const String _prefHelpEnabledKey = 'ui_help_enabled';
+
 class ExpensasMoradorTab extends StatefulWidget {
   final String unidadId;
 
@@ -17,11 +22,20 @@ class ExpensasMoradorTab extends StatefulWidget {
 class _ExpensasMoradorTabState extends State<ExpensasMoradorTab> {
   final ExpensasRepository _repository = ExpensasRepository();
   late Future<List<Expensa>> _futureExpensas;
+  bool _helpEnabled = true;
 
   @override
   void initState() {
     super.initState();
+    _loadHelpEnabled();
     _futureExpensas = _loadExpensas();
+  }
+
+  Future<void> _loadHelpEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    final value = prefs.getBool(_prefHelpEnabledKey);
+    if (!mounted || value == null) return;
+    setState(() => _helpEnabled = value);
   }
 
   Future<List<Expensa>> _loadExpensas() async {
@@ -70,10 +84,14 @@ class _ExpensasMoradorTabState extends State<ExpensasMoradorTab> {
                       children: [
                         const Text('No se pudieron cargar las expensas.'),
                         const SizedBox(height: 12),
-                        FilledButton.icon(
-                          onPressed: _refresh,
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Reintentar'),
+                        _HelpListener(
+                          helpEnabled: _helpEnabled,
+                          helpText: 'Volver a cargar expensas.',
+                          child: FilledButton.icon(
+                            onPressed: _refresh,
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Reintentar'),
+                          ),
                         ),
                       ],
                     ),
@@ -115,39 +133,166 @@ class _ExpensasMoradorTabState extends State<ExpensasMoradorTab> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   margin: const EdgeInsets.only(bottom: 12),
-                  child: ListTile(
+                  child: _HelpableTile(
+                    helpEnabled: _helpEnabled,
+                    helpText: 'Abrir detalle de la expensa.',
                     onTap: () => _openDetalle(expensa),
-                    title: Text(
-                      periodoLabel,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    child: ListTile(
+                      title: Text(
+                        periodoLabel,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 2),
+                          Text(
+                            'Importe: ${formatImporte(expensa.importeTotal, expensa.moneda)}',
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Vencimiento: ${formatFechaCorta(expensa.fechaVenc)}',
+                          ),
+                          const SizedBox(height: 6),
+                          Chip(
+                            label: Text(estadoLabel),
+                            visualDensity: VisualDensity.compact,
+                            backgroundColor: color.withValues(alpha: 0.12),
+                            labelStyle: TextStyle(color: color),
+                          ),
+                        ],
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
                     ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 2),
-                        Text(
-                          'Importe: ${formatImporte(expensa.importeTotal, expensa.moneda)}',
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Vencimiento: ${formatFechaCorta(expensa.fechaVenc)}',
-                        ),
-                        const SizedBox(height: 6),
-                        Chip(
-                          label: Text(estadoLabel),
-                          visualDensity: VisualDensity.compact,
-                          backgroundColor: color.withValues(alpha: 0.12),
-                          labelStyle: TextStyle(color: color),
-                        ),
-                      ],
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
                   ),
                 );
               },
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+class _HelpListener extends StatefulWidget {
+  final bool helpEnabled;
+  final String helpText;
+  final Widget child;
+
+  const _HelpListener({
+    required this.helpEnabled,
+    required this.helpText,
+    required this.child,
+  });
+
+  @override
+  State<_HelpListener> createState() => _HelpListenerState();
+}
+
+class _HelpListenerState extends State<_HelpListener> {
+  Timer? _timer;
+
+  void _startTimer() {
+    if (!widget.helpEnabled || widget.helpText.trim().isEmpty) return;
+    _timer?.cancel();
+    _timer = Timer(const Duration(seconds: 1), () {
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
+        SnackBar(content: Text(widget.helpText)),
+      );
+    });
+  }
+
+  void _cancelTimer() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  @override
+  void dispose() {
+    _cancelTimer();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      onPointerDown: (_) => _startTimer(),
+      onPointerUp: (_) => _cancelTimer(),
+      onPointerCancel: (_) => _cancelTimer(),
+      child: widget.child,
+    );
+  }
+}
+
+class _HelpableTile extends StatefulWidget {
+  final bool helpEnabled;
+  final String helpText;
+  final Widget child;
+  final VoidCallback? onTap;
+
+  const _HelpableTile({
+    required this.helpEnabled,
+    required this.helpText,
+    required this.child,
+    this.onTap,
+  });
+
+  @override
+  State<_HelpableTile> createState() => _HelpableTileState();
+}
+
+class _HelpableTileState extends State<_HelpableTile> {
+  Timer? _timer;
+  bool _helpShown = false;
+
+  void _startTimer() {
+    if (!widget.helpEnabled || widget.helpText.trim().isEmpty) return;
+    _timer?.cancel();
+    _helpShown = false;
+    _timer = Timer(const Duration(seconds: 1), () {
+      if (!mounted) return;
+      _helpShown = true;
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
+        SnackBar(content: Text(widget.helpText)),
+      );
+    });
+  }
+
+  void _cancelTimer() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  void _handleTap() {
+    _cancelTimer();
+    if (_helpShown) {
+      _helpShown = false;
+      return;
+    }
+    widget.onTap?.call();
+  }
+
+  @override
+  void dispose() {
+    _cancelTimer();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTapDown: (_) => _startTimer(),
+        onTapCancel: _cancelTimer,
+        onTap: widget.onTap == null ? null : _handleTap,
+        child: widget.child,
       ),
     );
   }

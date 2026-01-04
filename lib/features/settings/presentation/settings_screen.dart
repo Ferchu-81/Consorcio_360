@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:consorcio_360/bases_legales/ui/bases_legales_screen.dart';
 import 'package:consorcio_360/core/i18n/role_label.dart';
 import 'package:consorcio_360/core/state/current_context_notifier.dart';
@@ -6,13 +8,75 @@ import 'package:consorcio_360/gen_l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'notification_preferences_screen.dart';
 import 'profile_screen.dart';
 
-class SettingsScreen extends StatelessWidget {
+const String _gitBranch = String.fromEnvironment('GIT_BRANCH');
+const String _gitSha = String.fromEnvironment('GIT_SHA');
+const String _prefHelpEnabledKey = 'ui_help_enabled';
+
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  bool _helpEnabled = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHelpEnabled();
+  }
+
+  Future<void> _loadHelpEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    final value = prefs.getBool(_prefHelpEnabledKey);
+    if (!mounted || value == null) return;
+    setState(() => _helpEnabled = value);
+  }
+
+  Future<void> _setHelpEnabled(bool value) async {
+    setState(() => _helpEnabled = value);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_prefHelpEnabledKey, value);
+  }
+
+  Widget _buildHelpInfoCard() {
+    final label = _helpEnabled ? 'Desactivar ayudas' : 'Activar ayudas';
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Ayudas contextuales',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Manten\u00e9 presionado 1 segundo para ver una ayuda r\u00e1pida. '
+            'Pod\u00e9s desactivarlas cuando quieras.',
+          ),
+          TextButton(
+            onPressed: () => _setHelpEnabled(!_helpEnabled),
+            child: Text(label),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,32 +114,49 @@ class SettingsScreen extends StatelessWidget {
             unidad: ctx.unidadCodigo,
             rol: roleLabel(context, ctx.rol),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
+          _buildHelpInfoCard(),
+          const SizedBox(height: 12),
+          const _SectionTitle('Ayudas'),
+          SwitchListTile(
+            value: _helpEnabled,
+            onChanged: _setHelpEnabled,
+            title: const Text('Ayudas contextuales'),
+            subtitle: const Text('Pulsaci\u00f3n larga (1s) para ver explicaciones'),
+          ),
+          const SizedBox(height: 12),
           const _SectionTitle('Cuenta'),
-          ListTile(
-            leading: const Icon(Icons.person_outline),
-            title: const Text('Mi perfil'),
-            subtitle: const Text('Nombre, tel\u00e9fono, datos fiscales'),
+          _HelpableTile(
+            helpEnabled: _helpEnabled,
+            helpText: 'Ver y editar tus datos personales.',
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const ProfileScreen()),
             ),
+            child: const ListTile(
+              leading: Icon(Icons.person_outline),
+              title: Text('Mi perfil'),
+              subtitle: Text('Nombre, tel\u00e9fono, datos fiscales'),
+            ),
           ),
-          ListTile(
-            leading: const Icon(Icons.notifications_outlined),
-            title: const Text('Notificaciones'),
-            subtitle: const Text('Preferencias'),
+          _HelpableTile(
+            helpEnabled: _helpEnabled,
+            helpText: 'Eleg\u00ed qu\u00e9 avisos quer\u00e9s recibir.',
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => const NotificationPreferencesScreen(),
               ),
             ),
+            child: const ListTile(
+              leading: Icon(Icons.notifications_outlined),
+              title: Text('Notificaciones'),
+              subtitle: Text('Preferencias'),
+            ),
           ),
           const SizedBox(height: 12),
           const _SectionTitle('Documentaci\u00f3n'),
-          ListTile(
-            leading: const Icon(Icons.library_books_outlined),
-            title: const Text('Bases legales'),
-            subtitle: const Text('Reglamentos, PDFs y normativa'),
+          _HelpableTile(
+            helpEnabled: _helpEnabled,
+            helpText: 'Acced\u00e9 a reglamentos y normativa.',
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => BasesLegalesScreen(
@@ -83,15 +164,18 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
             ),
+            child: const ListTile(
+              leading: Icon(Icons.library_books_outlined),
+              title: Text('Bases legales'),
+              subtitle: Text('Reglamentos, PDFs y normativa'),
+            ),
           ),
           const SizedBox(height: 12),
           const _SectionTitle('Unidad'),
           if (isPropietario || isMorador || isAdmin)
-            ListTile(
-              leading: const Icon(Icons.home_outlined),
-              title: const Text('Datos de mi unidad'),
-              subtitle:
-                  const Text('mis declarados, tipo, ubicaci\u00f3n (pendiente)'),
+            _HelpableTile(
+              helpEnabled: _helpEnabled,
+              helpText: 'Informaci\u00f3n declarada de tu unidad.',
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -99,26 +183,34 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 );
               },
+              child: const ListTile(
+                leading: Icon(Icons.home_outlined),
+                title: Text('Datos de mi unidad'),
+                subtitle:
+                    Text('mis declarados, tipo, ubicaci\u00f3n (pendiente)'),
+              ),
             ),
           const SizedBox(height: 12),
           const _SectionTitle('Consorcio'),
           if (isAdmin) ...[
-            ListTile(
-              leading: const Icon(Icons.rule_folder_outlined),
-              title: const Text('Reglas del consorcio'),
-              subtitle: const Text('Voto, amenities, propietario no ocupante'),
+            _HelpableTile(
+              helpEnabled: _helpEnabled,
+              helpText: 'Reglas y votaciones del consorcio.',
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (_) =>
                       ConsorcioReglasScreen(consorcioId: ctx.consorcioId),
                 ),
               ),
+              child: const ListTile(
+                leading: Icon(Icons.rule_folder_outlined),
+                title: Text('Reglas del consorcio'),
+                subtitle: Text('Voto, amenities, propietario no ocupante'),
+              ),
             ),
-            ListTile(
-              leading: const Icon(Icons.apartment_outlined),
-              title: const Text('Configuraci\u00f3n del consorcio'),
-              subtitle:
-                  const Text('Tipo, ubicaci\u00f3n, UF, facturaci\u00f3n (pendiente)'),
+            _HelpableTile(
+              helpEnabled: _helpEnabled,
+              helpText: 'Ajustes globales del consorcio.',
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -127,13 +219,17 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 );
               },
-            ),
-            ListTile(
-              leading: const Icon(Icons.pool_outlined),
-              title: const Text('Amenities y reservas'),
-              subtitle: const Text(
-                'Crear amenities, reglas, horarios, tarifas (pendiente)',
+              child: const ListTile(
+                leading: Icon(Icons.apartment_outlined),
+                title: Text('Configuraci\u00f3n del consorcio'),
+                subtitle: Text(
+                  'Tipo, ubicaci\u00f3n, UF, facturaci\u00f3n (pendiente)',
+                ),
               ),
+            ),
+            _HelpableTile(
+              helpEnabled: _helpEnabled,
+              helpText: 'Administrar amenities y reservas.',
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -141,12 +237,18 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 );
               },
+              child: const ListTile(
+                leading: Icon(Icons.pool_outlined),
+                title: Text('Amenities y reservas'),
+                subtitle: Text(
+                  'Crear amenities, reglas, horarios, tarifas (pendiente)',
+                ),
+              ),
             ),
           ] else ...[
-            ListTile(
-              leading: const Icon(Icons.event_available_outlined),
-              title: const Text('Reservas'),
-              subtitle: const Text('Ver y reservar amenities (pendiente)'),
+            _HelpableTile(
+              helpEnabled: _helpEnabled,
+              helpText: 'Ver y reservar amenities.',
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -155,34 +257,129 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 );
               },
+              child: const ListTile(
+                leading: Icon(Icons.event_available_outlined),
+                title: Text('Reservas'),
+                subtitle: Text('Ver y reservar amenities (pendiente)'),
+              ),
             ),
           ],
           const SizedBox(height: 12),
-          ListTile(
-            leading: const Icon(Icons.info_outline),
-            title: Text(AppLocalizations.of(context).settingsAppVersion),
-            subtitle: FutureBuilder<PackageInfo>(
-              future: PackageInfo.fromPlatform(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) return const Text('...');
-                final p = snapshot.data!;
-                return Text('${p.version} (${p.buildNumber})');
-              },
+          _HelpableTile(
+            helpEnabled: _helpEnabled,
+            helpText: 'Versi\u00f3n instalada de la app.',
+            onTap: () {},
+            child: ListTile(
+              leading: const Icon(Icons.info_outline),
+              title: Text(AppLocalizations.of(context).settingsAppVersion),
+              subtitle: FutureBuilder<PackageInfo>(
+                future: PackageInfo.fromPlatform(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) return const Text('...');
+                  final p = snapshot.data!;
+                  final versionLabel = 'v${p.version} (build ${p.buildNumber})';
+                  final extras = <String>[];
+                  if (_gitBranch.isNotEmpty) {
+                    extras.add('branch $_gitBranch');
+                  }
+                  if (_gitSha.isNotEmpty) {
+                    extras.add('commit $_gitSha');
+                  }
+                  final label = extras.isEmpty
+                      ? versionLabel
+                      : '$versionLabel | ${extras.join(' | ')}';
+                  return Text(label);
+                },
+              ),
             ),
           ),
           const SizedBox(height: 12),
           const _SectionTitle('Sesi\u00f3n'),
-          ListTile(
-            leading: const Icon(Icons.logout),
-            title: const Text('Cerrar sesi\u00f3n'),
+          _HelpableTile(
+            helpEnabled: _helpEnabled,
+            helpText: 'Salir de tu cuenta.',
             onTap: () async {
               await Supabase.instance.client.auth.signOut();
               if (context.mounted) {
                 Navigator.of(context).popUntil((route) => route.isFirst);
               }
             },
+            child: const ListTile(
+              leading: Icon(Icons.logout),
+              title: Text('Cerrar sesi\u00f3n'),
+            ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _HelpableTile extends StatefulWidget {
+  final bool helpEnabled;
+  final String helpText;
+  final Widget child;
+  final VoidCallback? onTap;
+
+  const _HelpableTile({
+    required this.helpEnabled,
+    required this.helpText,
+    required this.child,
+    this.onTap,
+  });
+
+  @override
+  State<_HelpableTile> createState() => _HelpableTileState();
+}
+
+class _HelpableTileState extends State<_HelpableTile> {
+  Timer? _timer;
+  bool _helpShown = false;
+
+  void _startTimer() {
+    if (!widget.helpEnabled || widget.helpText.trim().isEmpty) return;
+    _timer?.cancel();
+    _helpShown = false;
+    _timer = Timer(const Duration(seconds: 1), () {
+      if (!mounted) return;
+      _helpShown = true;
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
+        SnackBar(content: Text(widget.helpText)),
+      );
+    });
+  }
+
+  void _cancelTimer() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  void _handleTap() {
+    _cancelTimer();
+    if (_helpShown) {
+      _helpShown = false;
+      return;
+    }
+    widget.onTap?.call();
+  }
+
+  @override
+  void dispose() {
+    _cancelTimer();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTapDown: (_) => _startTimer(),
+        onTapCancel: _cancelTimer,
+        onTap: widget.onTap == null ? null : _handleTap,
+        child: widget.child,
       ),
     );
   }

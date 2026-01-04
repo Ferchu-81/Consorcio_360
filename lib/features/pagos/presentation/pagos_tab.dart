@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:consorcio_360/data/models/pago_expensa.dart';
 import 'package:consorcio_360/data/models/usuario_contexto.dart';
 import 'package:consorcio_360/data/repositories/expensas_repository.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensas_utils.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+const String _prefHelpEnabledKey = 'ui_help_enabled';
 
 class PagosTab extends StatefulWidget {
   final UsuarioContexto contexto;
@@ -21,12 +26,21 @@ class _PagosTabState extends State<PagosTab> {
   final ExpensasRepository _repo = ExpensasRepository();
   late Future<List<PagoExpensa>> _futurePagos;
   Map<String, String> _unidadCodigoPorId = {};
+  bool _helpEnabled = true;
 
   @override
   void initState() {
     super.initState();
+    _loadHelpEnabled();
     _cargarCodigosUnidades();
     _futurePagos = _loadPagos();
+  }
+
+  Future<void> _loadHelpEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    final value = prefs.getBool(_prefHelpEnabledKey);
+    if (!mounted || value == null) return;
+    setState(() => _helpEnabled = value);
   }
 
   Future<void> _cargarCodigosUnidades() async {
@@ -138,7 +152,10 @@ class _PagosTabState extends State<PagosTab> {
               final estadoLabel = formatEstadoPago(pago.estadoPago);
               final medioLabel = formatEstado(pago.medioPago);
 
-              return Card(
+              return _HelpListener(
+                helpEnabled: _helpEnabled,
+                helpText: 'Detalle de pago registrado.',
+                child: Card(
                 margin: const EdgeInsets.fromLTRB(12, 8, 12, 4),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
@@ -178,11 +195,65 @@ class _PagosTabState extends State<PagosTab> {
                     ],
                   ),
                 ),
+                ),
               );
             },
           );
         },
       ),
+    );
+  }
+}
+
+class _HelpListener extends StatefulWidget {
+  final bool helpEnabled;
+  final String helpText;
+  final Widget child;
+
+  const _HelpListener({
+    required this.helpEnabled,
+    required this.helpText,
+    required this.child,
+  });
+
+  @override
+  State<_HelpListener> createState() => _HelpListenerState();
+}
+
+class _HelpListenerState extends State<_HelpListener> {
+  Timer? _timer;
+
+  void _startTimer() {
+    if (!widget.helpEnabled || widget.helpText.trim().isEmpty) return;
+    _timer?.cancel();
+    _timer = Timer(const Duration(seconds: 1), () {
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
+        SnackBar(content: Text(widget.helpText)),
+      );
+    });
+  }
+
+  void _cancelTimer() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  @override
+  void dispose() {
+    _cancelTimer();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      onPointerDown: (_) => _startTimer(),
+      onPointerUp: (_) => _cancelTimer(),
+      onPointerCancel: (_) => _cancelTimer(),
+      child: widget.child,
     );
   }
 }
