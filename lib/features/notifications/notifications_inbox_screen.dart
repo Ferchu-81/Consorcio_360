@@ -22,6 +22,7 @@ class NotificationsInboxScreen extends StatefulWidget {
 
 class _NotificationsInboxScreenState extends State<NotificationsInboxScreen> {
   static const double _estimatedTileExtent = 76;
+  static const bool _forceShowAllDebug = true;
 
   final ScrollController _scrollController = ScrollController();
 
@@ -35,11 +36,13 @@ class _NotificationsInboxScreenState extends State<NotificationsInboxScreen> {
   @override
   void initState() {
     super.initState();
-    _loadHelpEnabled();
-    _loadInboxScope();
     _highlightId = widget.notificationId?.trim().isEmpty ?? true
         ? null
         : widget.notificationId?.trim();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadHelpEnabled();
+      _loadInboxScope();
+    });
   }
 
   @override
@@ -49,38 +52,57 @@ class _NotificationsInboxScreenState extends State<NotificationsInboxScreen> {
   }
 
   Future<void> _loadHelpEnabled() async {
-    final prefs = await SharedPreferences.getInstance();
-    final value = prefs.getBool(_prefHelpEnabledKey);
-    if (!mounted || value == null) return;
-    setState(() => _helpEnabled = value);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final value = prefs.getBool(_prefHelpEnabledKey);
+      if (!mounted || value == null) return;
+      setState(() => _helpEnabled = value);
+    } catch (e, st) {
+      debugPrint('NOTIFS _loadHelpEnabled error: $e\n$st');
+    }
   }
 
   Future<void> _loadInboxScope() async {
-    if (!mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
-    final contexto = context.read<CurrentContextNotifier>().current;
-    final isAdmin = contexto?.rol == 'ADMIN_CONSORCIO';
-    final prefs = await SharedPreferences.getInstance();
-    final value = prefs.getBool(_prefInboxShowAllKey);
-    if (!mounted) return;
-    if (!isAdmin) {
-      await prefs.setBool(_prefInboxShowAllKey, false);
-      setState(() => _showAll = false);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        messenger.showSnackBar(
-          const SnackBar(
-            content: Text('Vista global disponible solo para administradores.'),
-          ),
-        );
-      });
-    } else if (value != null) {
-      setState(() => _showAll = value);
+    try {
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.maybeOf(context);
+      final l10n = AppLocalizations.of(context);
+      final contexto = context.read<CurrentContextNotifier>().current;
+      final isAdmin = contexto?.rol == 'ADMIN_CONSORCIO';
+      final forceShowAll = _forceShowAllDebug;
+      final prefs = await SharedPreferences.getInstance();
+      final value = prefs.getBool(_prefInboxShowAllKey);
+      if (!mounted) return;
+      if (!isAdmin && !forceShowAll) {
+        await prefs.setBool(_prefInboxShowAllKey, false);
+        setState(() => _showAll = false);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          messenger?.showSnackBar(
+            SnackBar(
+              content: Text(l10n.helpInboxShowAllRestricted),
+            ),
+          );
+        });
+      } else if (forceShowAll) {
+        setState(() => _showAll = true);
+      } else if (value != null) {
+        setState(() => _showAll = value);
+      }
+      await _load();
+    } catch (e, st) {
+      debugPrint('NOTIFS _loadInboxScope error: $e\n$st');
     }
-    await _load();
   }
 
   Future<void> _toggleInboxScope() async {
+    if (!mounted) return;
+    if (_forceShowAllDebug) {
+      debugPrint('NOTIFS toggle ignored: forceShowAllDebug enabled.');
+      return;
+    }
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final l10n = AppLocalizations.of(context);
     final value = !_showAll;
     setState(() => _showAll = value);
     final prefs = await SharedPreferences.getInstance();
@@ -88,9 +110,9 @@ class _NotificationsInboxScreenState extends State<NotificationsInboxScreen> {
     await _load();
     if (!mounted) return;
     final label = value
-        ? 'Mostrando todas las notificaciones.'
-        : 'Mostrando solo este contexto.';
-    ScaffoldMessenger.of(context).showSnackBar(
+        ? l10n.helpInboxSnackShowAll
+        : l10n.helpInboxSnackShowContext;
+    messenger?.showSnackBar(
       SnackBar(content: Text(label)),
     );
   }
@@ -129,7 +151,7 @@ class _NotificationsInboxScreenState extends State<NotificationsInboxScreen> {
           )
           .eq('usuario_id', userId);
 
-      final effectiveShowAll = _showAll && isAdmin;
+      final effectiveShowAll = _forceShowAllDebug || (_showAll && isAdmin);
       if (!effectiveShowAll) {
         if (consorcioId.isNotEmpty) {
           q = q.eq('consorcio_id', consorcioId);
@@ -173,7 +195,10 @@ class _NotificationsInboxScreenState extends State<NotificationsInboxScreen> {
     if (targetId == null || targetId.isEmpty) return;
 
     final index = _items.indexWhere((n) => n['id']?.toString() == targetId);
-    if (index < 0) return;
+    if (index < 0) {
+      debugPrint('NOTIFS highlight not found: id=$targetId');
+      return;
+    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_scrollController.hasClients) return;
@@ -262,12 +287,12 @@ class _NotificationsInboxScreenState extends State<NotificationsInboxScreen> {
             _HelpListener(
               helpEnabled: _helpEnabled,
               helpText: _showAll
-                  ? 'Est\u00e1s viendo todas las notificaciones.'
-                  : 'Est\u00e1s viendo el contexto actual.',
+                  ? l10n.helpInboxToggleAllOn
+                  : l10n.helpInboxToggleAllOff,
               child: IconButton(
                 tooltip: _showAll
-                    ? 'Mostrar solo este contexto'
-                    : 'Mostrar todas',
+                    ? l10n.helpInboxShowContextTooltip
+                    : l10n.helpInboxShowAllTooltip,
                 icon: Icon(
                   _showAll ? Icons.filter_alt_off : Icons.filter_alt,
                 ),
@@ -276,7 +301,7 @@ class _NotificationsInboxScreenState extends State<NotificationsInboxScreen> {
             ),
           _HelpListener(
             helpEnabled: _helpEnabled,
-            helpText: 'Marc\u00e1 todas las notificaciones como le\u00eddas.',
+            helpText: l10n.helpInboxMarkAllRead,
             child: IconButton(
               tooltip: l10n.notificationsMarkAllRead,
               icon: const Icon(Icons.done_all),
@@ -341,8 +366,8 @@ class _NotificationsInboxScreenState extends State<NotificationsInboxScreen> {
                   return _HelpableTile(
                     helpEnabled: _helpEnabled,
                     helpText: isUnread
-                        ? 'Abr\u00ed para marcarla como le\u00edda.'
-                        : 'Notificaci\u00f3n ya le\u00edda.',
+                        ? l10n.helpInboxMarkAsRead
+                        : l10n.helpInboxAlreadyRead,
                     onTap: isUnread
                         ? () async {
                             await _markAsRead(n['id'].toString());

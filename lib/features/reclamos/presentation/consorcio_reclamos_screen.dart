@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:consorcio_360/core/state/current_context_notifier.dart';
+import 'package:consorcio_360/gen_l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -183,6 +184,7 @@ class _ConsorcioReclamosScreenState extends State<ConsorcioReclamosScreen> {
 
   Widget _buildBody(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return _isLoading
         ? const Center(child: CircularProgressIndicator())
@@ -197,7 +199,7 @@ class _ConsorcioReclamosScreenState extends State<ConsorcioReclamosScreen> {
                   const SizedBox(height: 12),
                   _HelpListener(
                     helpEnabled: _helpEnabled,
-                    helpText: 'Volver a cargar reclamos del consorcio.',
+                    helpText: l10n.helpReclamoReloadConsorcio,
                     child: FilledButton.icon(
                       onPressed: _loadReclamosConsorcio,
                       icon: const Icon(Icons.refresh),
@@ -332,7 +334,7 @@ class _ConsorcioReclamosScreenState extends State<ConsorcioReclamosScreen> {
                             ),
                             child: _HelpableTile(
                               helpEnabled: _helpEnabled,
-                              helpText: 'Abrir detalle del reclamo.',
+                              helpText: l10n.helpReclamoDetail,
                               onTap: () => _openDetalle(r),
                               child: ListTile(
                                 title: Text(

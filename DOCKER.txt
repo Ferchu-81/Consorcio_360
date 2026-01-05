@@ -145,3 +145,17 @@ Cannot find project ref. Have you run supabase link?
           | mdgscwcgaatrouaiqoja | whgdymgatbkadyejvfhu | Consorcio 360 Tesis | South America (São Paulo) | 2025-11-19 22:17:11
 
 PS D:\IUA\6to SEMESTRE\TALLER DE DESARROLLO DE APLICACIONES\App Consorcio 360\consorcio_360>
+
+------------------------------------------------------------
+Version label (Settings)
+
+PowerShell (desde consorcio_360):
+$GIT_BRANCH = git rev-parse --abbrev-ref HEAD
+$GIT_SHA = git rev-parse --short HEAD
+flutter run --dart-define=GIT_BRANCH=$GIT_BRANCH --dart-define=GIT_SHA=$GIT_SHA
+
+Opcional build:
+flutter build apk --dart-define=GIT_BRANCH=$GIT_BRANCH --dart-define=GIT_SHA=$GIT_SHA
+
+Script:
+.\run_with_git_info.ps1

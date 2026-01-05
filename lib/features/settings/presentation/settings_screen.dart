@@ -48,7 +48,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildHelpInfoCard() {
-    final label = _helpEnabled ? 'Desactivar ayudas' : 'Activar ayudas';
+    final l10n = AppLocalizations.of(context);
+    final label =
+        _helpEnabled ? l10n.helpContextualDisable : l10n.helpContextualEnable;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -59,16 +61,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Ayudas contextuales',
+            l10n.helpContextualTitle,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
           ),
           const SizedBox(height: 6),
-          const Text(
-            'Manten\u00e9 presionado 1 segundo para ver una ayuda r\u00e1pida. '
-            'Pod\u00e9s desactivarlas cuando quieras.',
-          ),
+          Text(l10n.helpContextualDescription),
           TextButton(
             onPressed: () => _setHelpEnabled(!_helpEnabled),
             child: Text(label),
@@ -81,6 +80,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final ctx = context.watch<CurrentContextNotifier>().current;
+    final l10n = AppLocalizations.of(context);
 
     if (ctx == null) {
       return Scaffold(
@@ -117,18 +117,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 12),
           _buildHelpInfoCard(),
           const SizedBox(height: 12),
-          const _SectionTitle('Ayudas'),
+          _SectionTitle(l10n.helpSectionTitle),
           SwitchListTile(
             value: _helpEnabled,
             onChanged: _setHelpEnabled,
-            title: const Text('Ayudas contextuales'),
-            subtitle: const Text('Pulsaci\u00f3n larga (1s) para ver explicaciones'),
+            title: Text(l10n.helpContextualTitle),
+            subtitle: Text(l10n.helpContextualSwitchSubtitle),
           ),
           const SizedBox(height: 12),
           const _SectionTitle('Cuenta'),
           _HelpableTile(
             helpEnabled: _helpEnabled,
-            helpText: 'Ver y editar tus datos personales.',
+            helpText: l10n.helpSettingsProfile,
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const ProfileScreen()),
             ),
@@ -140,7 +140,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           _HelpableTile(
             helpEnabled: _helpEnabled,
-            helpText: 'Eleg\u00ed qu\u00e9 avisos quer\u00e9s recibir.',
+            helpText: l10n.helpSettingsNotifications,
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => const NotificationPreferencesScreen(),
@@ -156,7 +156,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const _SectionTitle('Documentaci\u00f3n'),
           _HelpableTile(
             helpEnabled: _helpEnabled,
-            helpText: 'Acced\u00e9 a reglamentos y normativa.',
+            helpText: l10n.helpSettingsBasesLegales,
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => BasesLegalesScreen(
@@ -175,7 +175,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           if (isPropietario || isMorador || isAdmin)
             _HelpableTile(
               helpEnabled: _helpEnabled,
-              helpText: 'Informaci\u00f3n declarada de tu unidad.',
+              helpText: l10n.helpSettingsUnidad,
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -195,7 +195,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           if (isAdmin) ...[
             _HelpableTile(
               helpEnabled: _helpEnabled,
-              helpText: 'Reglas y votaciones del consorcio.',
+              helpText: l10n.helpSettingsReglasConsorcio,
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (_) =>
@@ -210,7 +210,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             _HelpableTile(
               helpEnabled: _helpEnabled,
-              helpText: 'Ajustes globales del consorcio.',
+              helpText: l10n.helpSettingsConsorcioConfig,
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -229,7 +229,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             _HelpableTile(
               helpEnabled: _helpEnabled,
-              helpText: 'Administrar amenities y reservas.',
+              helpText: l10n.helpSettingsAmenitiesAdmin,
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -248,7 +248,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ] else ...[
             _HelpableTile(
               helpEnabled: _helpEnabled,
-              helpText: 'Ver y reservar amenities.',
+              helpText: l10n.helpSettingsAmenitiesUser,
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -267,7 +267,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 12),
           _HelpableTile(
             helpEnabled: _helpEnabled,
-            helpText: 'Versi\u00f3n instalada de la app.',
+            helpText: l10n.helpSettingsAppVersion,
             onTap: () {},
             child: ListTile(
               leading: const Icon(Icons.info_outline),
@@ -297,7 +297,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const _SectionTitle('Sesi\u00f3n'),
           _HelpableTile(
             helpEnabled: _helpEnabled,
-            helpText: 'Salir de tu cuenta.',
+            helpText: l10n.helpSettingsLogout,
             onTap: () async {
               await Supabase.instance.client.auth.signOut();
               if (context.mounted) {

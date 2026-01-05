@@ -573,6 +573,258 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Versión de la app'**
   String get settingsAppVersion;
+
+  /// No description provided for @helpContextualTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Ayudas contextuales'**
+  String get helpContextualTitle;
+
+  /// No description provided for @helpContextualDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Mantené presionado 1 segundo para ver una ayuda rápida. Podés desactivarlas cuando quieras.'**
+  String get helpContextualDescription;
+
+  /// No description provided for @helpContextualEnable.
+  ///
+  /// In es, this message translates to:
+  /// **'Activar ayudas'**
+  String get helpContextualEnable;
+
+  /// No description provided for @helpContextualDisable.
+  ///
+  /// In es, this message translates to:
+  /// **'Desactivar ayudas'**
+  String get helpContextualDisable;
+
+  /// No description provided for @helpSectionTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Ayudas'**
+  String get helpSectionTitle;
+
+  /// No description provided for @helpContextualSwitchSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Pulsación larga (1s) para ver explicaciones'**
+  String get helpContextualSwitchSubtitle;
+
+  /// No description provided for @helpMainNotifications.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver notificaciones y avisos.'**
+  String get helpMainNotifications;
+
+  /// No description provided for @helpMainSettings.
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir configuración de la app.'**
+  String get helpMainSettings;
+
+  /// No description provided for @helpMainChangeContext.
+  ///
+  /// In es, this message translates to:
+  /// **'Cambiar consorcio, unidad o rol.'**
+  String get helpMainChangeContext;
+
+  /// No description provided for @helpMainLogout.
+  ///
+  /// In es, this message translates to:
+  /// **'Cerrar sesión.'**
+  String get helpMainLogout;
+
+  /// No description provided for @helpDashboardExpensasSummary.
+  ///
+  /// In es, this message translates to:
+  /// **'Resumen de expensas del último año.'**
+  String get helpDashboardExpensasSummary;
+
+  /// No description provided for @helpDashboardReclamosSummary.
+  ///
+  /// In es, this message translates to:
+  /// **'Resumen de reclamos activos y resueltos.'**
+  String get helpDashboardReclamosSummary;
+
+  /// No description provided for @helpDashboardBasesLegales.
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir bases legales del consorcio.'**
+  String get helpDashboardBasesLegales;
+
+  /// No description provided for @helpSettingsProfile.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver y editar tus datos personales.'**
+  String get helpSettingsProfile;
+
+  /// No description provided for @helpSettingsNotifications.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegí qué avisos querés recibir.'**
+  String get helpSettingsNotifications;
+
+  /// No description provided for @helpSettingsBasesLegales.
+  ///
+  /// In es, this message translates to:
+  /// **'Accedé a reglamentos y normativa.'**
+  String get helpSettingsBasesLegales;
+
+  /// No description provided for @helpSettingsUnidad.
+  ///
+  /// In es, this message translates to:
+  /// **'Información declarada de tu unidad.'**
+  String get helpSettingsUnidad;
+
+  /// No description provided for @helpSettingsReglasConsorcio.
+  ///
+  /// In es, this message translates to:
+  /// **'Reglas y votaciones del consorcio.'**
+  String get helpSettingsReglasConsorcio;
+
+  /// No description provided for @helpSettingsConsorcioConfig.
+  ///
+  /// In es, this message translates to:
+  /// **'Ajustes globales del consorcio.'**
+  String get helpSettingsConsorcioConfig;
+
+  /// No description provided for @helpSettingsAmenitiesAdmin.
+  ///
+  /// In es, this message translates to:
+  /// **'Administrar amenities y reservas.'**
+  String get helpSettingsAmenitiesAdmin;
+
+  /// No description provided for @helpSettingsAmenitiesUser.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver y reservar amenities.'**
+  String get helpSettingsAmenitiesUser;
+
+  /// No description provided for @helpSettingsAppVersion.
+  ///
+  /// In es, this message translates to:
+  /// **'Versión instalada de la app.'**
+  String get helpSettingsAppVersion;
+
+  /// No description provided for @helpSettingsLogout.
+  ///
+  /// In es, this message translates to:
+  /// **'Salir de tu cuenta.'**
+  String get helpSettingsLogout;
+
+  /// No description provided for @helpReclamoNew.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear un nuevo reclamo.'**
+  String get helpReclamoNew;
+
+  /// No description provided for @helpReclamoDetail.
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir detalle del reclamo.'**
+  String get helpReclamoDetail;
+
+  /// No description provided for @helpReclamoReloadConsorcio.
+  ///
+  /// In es, this message translates to:
+  /// **'Volver a cargar reclamos del consorcio.'**
+  String get helpReclamoReloadConsorcio;
+
+  /// No description provided for @helpExpensaNew.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear una nueva expensa.'**
+  String get helpExpensaNew;
+
+  /// No description provided for @helpExpensaDetail.
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir detalle de la expensa.'**
+  String get helpExpensaDetail;
+
+  /// No description provided for @helpExpensaReload.
+  ///
+  /// In es, this message translates to:
+  /// **'Volver a cargar expensas.'**
+  String get helpExpensaReload;
+
+  /// No description provided for @helpExpensaDateFrom.
+  ///
+  /// In es, this message translates to:
+  /// **'Seleccioná periodo DESDE'**
+  String get helpExpensaDateFrom;
+
+  /// No description provided for @helpExpensaDateTo.
+  ///
+  /// In es, this message translates to:
+  /// **'Seleccioná periodo HASTA'**
+  String get helpExpensaDateTo;
+
+  /// No description provided for @helpPagoDetail.
+  ///
+  /// In es, this message translates to:
+  /// **'Detalle de pago registrado.'**
+  String get helpPagoDetail;
+
+  /// No description provided for @helpInboxToggleAllOn.
+  ///
+  /// In es, this message translates to:
+  /// **'Mostrar solo este contexto'**
+  String get helpInboxToggleAllOn;
+
+  /// No description provided for @helpInboxToggleAllOff.
+  ///
+  /// In es, this message translates to:
+  /// **'Mostrar todos mis contextos'**
+  String get helpInboxToggleAllOff;
+
+  /// No description provided for @helpInboxShowAllTooltip.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver todo'**
+  String get helpInboxShowAllTooltip;
+
+  /// No description provided for @helpInboxShowContextTooltip.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver contexto'**
+  String get helpInboxShowContextTooltip;
+
+  /// No description provided for @helpInboxMarkAllRead.
+  ///
+  /// In es, this message translates to:
+  /// **'Marcar todo como leído.'**
+  String get helpInboxMarkAllRead;
+
+  /// No description provided for @helpInboxMarkAsRead.
+  ///
+  /// In es, this message translates to:
+  /// **'Marcar como leído.'**
+  String get helpInboxMarkAsRead;
+
+  /// No description provided for @helpInboxAlreadyRead.
+  ///
+  /// In es, this message translates to:
+  /// **'Ya está leída.'**
+  String get helpInboxAlreadyRead;
+
+  /// No description provided for @helpInboxSnackShowAll.
+  ///
+  /// In es, this message translates to:
+  /// **'Mostrando todas las notificaciones.'**
+  String get helpInboxSnackShowAll;
+
+  /// No description provided for @helpInboxSnackShowContext.
+  ///
+  /// In es, this message translates to:
+  /// **'Mostrando solo el contexto actual.'**
+  String get helpInboxSnackShowContext;
+
+  /// No description provided for @helpInboxShowAllRestricted.
+  ///
+  /// In es, this message translates to:
+  /// **'Solo administradores pueden ver todo.'**
+  String get helpInboxShowAllRestricted;
 }
 
 class _AppLocalizationsDelegate

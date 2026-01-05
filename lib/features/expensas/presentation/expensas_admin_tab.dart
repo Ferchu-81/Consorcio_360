@@ -5,6 +5,7 @@ import 'package:consorcio_360/data/repositories/expensas_repository.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensa_admin_detail_screen.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensas_utils.dart';
 import 'package:consorcio_360/features/expensas/presentation/nueva_expensa_screen.dart';
+import 'package:consorcio_360/gen_l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -95,13 +96,14 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
   Future<void> _seleccionarDesde() async {
     final ahora = DateTime.now();
     final inicial = _desde ?? DateTime(ahora.year, ahora.month, 1);
+    final l10n = AppLocalizations.of(context);
 
     final date = await showDatePicker(
       context: context,
       initialDate: inicial,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
-      helpText: 'Seleccioná periodo DESDE',
+      helpText: l10n.helpExpensaDateFrom,
     );
 
     if (date != null) {
@@ -115,13 +117,14 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
   Future<void> _seleccionarHasta() async {
     final ahora = DateTime.now();
     final inicial = _hasta ?? DateTime(ahora.year, ahora.month, 1);
+    final l10n = AppLocalizations.of(context);
 
     final date = await showDatePicker(
       context: context,
       initialDate: inicial,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
-      helpText: 'Seleccioná periodo HASTA',
+      helpText: l10n.helpExpensaDateTo,
     );
 
     if (date != null) {
@@ -140,6 +143,7 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return Column(
       children: [
@@ -150,7 +154,7 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
             alignment: Alignment.centerRight,
             child: _HelpListener(
               helpEnabled: _helpEnabled,
-              helpText: 'Crear una nueva expensa.',
+              helpText: l10n.helpExpensaNew,
               child: FilledButton.icon(
                 onPressed: _openNuevaExpensa,
                 icon: const Icon(Icons.add),
@@ -260,7 +264,7 @@ class _ExpensasAdminTabState extends State<ExpensasAdminTab> {
                             ),
                             child: _HelpableTile(
                               helpEnabled: _helpEnabled,
-                              helpText: 'Abrir detalle de la expensa.',
+                              helpText: l10n.helpExpensaDetail,
                               borderRadius: BorderRadius.circular(14),
                               onTap: () async {
                                 final recargar = await Navigator.of(context)

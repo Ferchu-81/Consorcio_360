@@ -254,4 +254,135 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsAppVersion => 'App version';
+
+  @override
+  String get helpContextualTitle => 'Contextual help';
+
+  @override
+  String get helpContextualDescription =>
+      'Press and hold for 1 second to see a quick tip. You can turn them off anytime.';
+
+  @override
+  String get helpContextualEnable => 'Enable help';
+
+  @override
+  String get helpContextualDisable => 'Disable help';
+
+  @override
+  String get helpSectionTitle => 'Help';
+
+  @override
+  String get helpContextualSwitchSubtitle =>
+      'Long press (1s) to see explanations';
+
+  @override
+  String get helpMainNotifications => 'View notifications and alerts.';
+
+  @override
+  String get helpMainSettings => 'Open app settings.';
+
+  @override
+  String get helpMainChangeContext => 'Switch consorcio, unit, or role.';
+
+  @override
+  String get helpMainLogout => 'Sign out.';
+
+  @override
+  String get helpDashboardExpensasSummary =>
+      'Summary of expenses for the last year.';
+
+  @override
+  String get helpDashboardReclamosSummary =>
+      'Summary of active and resolved claims.';
+
+  @override
+  String get helpDashboardBasesLegales => 'Open consorcio legal documents.';
+
+  @override
+  String get helpSettingsProfile => 'View and edit your personal data.';
+
+  @override
+  String get helpSettingsNotifications =>
+      'Choose which alerts you want to receive.';
+
+  @override
+  String get helpSettingsBasesLegales => 'Access regulations and policies.';
+
+  @override
+  String get helpSettingsUnidad => 'Declared information for your unit.';
+
+  @override
+  String get helpSettingsReglasConsorcio => 'Consorcio rules and votes.';
+
+  @override
+  String get helpSettingsConsorcioConfig => 'Global consorcio settings.';
+
+  @override
+  String get helpSettingsAmenitiesAdmin => 'Manage amenities and reservations.';
+
+  @override
+  String get helpSettingsAmenitiesUser => 'View and reserve amenities.';
+
+  @override
+  String get helpSettingsAppVersion => 'Installed app version.';
+
+  @override
+  String get helpSettingsLogout => 'Sign out of your account.';
+
+  @override
+  String get helpReclamoNew => 'Create a new claim.';
+
+  @override
+  String get helpReclamoDetail => 'Open claim details.';
+
+  @override
+  String get helpReclamoReloadConsorcio => 'Reload consorcio claims.';
+
+  @override
+  String get helpExpensaNew => 'Create a new expense.';
+
+  @override
+  String get helpExpensaDetail => 'Open expense details.';
+
+  @override
+  String get helpExpensaReload => 'Reload expenses.';
+
+  @override
+  String get helpExpensaDateFrom => 'Select period FROM';
+
+  @override
+  String get helpExpensaDateTo => 'Select period TO';
+
+  @override
+  String get helpPagoDetail => 'Payment details.';
+
+  @override
+  String get helpInboxToggleAllOn => 'Show only this context';
+
+  @override
+  String get helpInboxToggleAllOff => 'Show all my contexts';
+
+  @override
+  String get helpInboxShowAllTooltip => 'Show all';
+
+  @override
+  String get helpInboxShowContextTooltip => 'Show context';
+
+  @override
+  String get helpInboxMarkAllRead => 'Mark all as read.';
+
+  @override
+  String get helpInboxMarkAsRead => 'Mark as read.';
+
+  @override
+  String get helpInboxAlreadyRead => 'Already read.';
+
+  @override
+  String get helpInboxSnackShowAll => 'Showing all notifications.';
+
+  @override
+  String get helpInboxSnackShowContext => 'Showing only the current context.';
+
+  @override
+  String get helpInboxShowAllRestricted => 'Only admins can view all.';
 }

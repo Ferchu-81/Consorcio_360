@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:consorcio_360/core/state/current_context_notifier.dart';
+import 'package:consorcio_360/gen_l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -118,6 +119,7 @@ class _ReclamosTabState extends State<ReclamosTab> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -127,7 +129,7 @@ class _ReclamosTabState extends State<ReclamosTab> {
             alignment: Alignment.centerRight,
             child: _HelpListener(
               helpEnabled: _helpEnabled,
-              helpText: 'Crear un nuevo reclamo.',
+              helpText: l10n.helpReclamoNew,
               child: FilledButton.icon(
                 onPressed: _openNewReclamo,
                 icon: const Icon(Icons.add),
@@ -203,7 +205,7 @@ class _ReclamosTabState extends State<ReclamosTab> {
                       margin: const EdgeInsets.only(bottom: 12),
                       child: _HelpableTile(
                         helpEnabled: _helpEnabled,
-                        helpText: 'Abrir detalle del reclamo.',
+                        helpText: l10n.helpReclamoDetail,
                         onTap: () => _openDetalle(r),
                         child: ListTile(
                           title: Text(

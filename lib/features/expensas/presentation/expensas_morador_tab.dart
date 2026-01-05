@@ -4,6 +4,7 @@ import 'package:consorcio_360/data/models/expensa.dart';
 import 'package:consorcio_360/data/repositories/expensas_repository.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensa_detail_screen.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensas_utils.dart';
+import 'package:consorcio_360/gen_l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -61,6 +62,7 @@ class _ExpensasMoradorTabState extends State<ExpensasMoradorTab> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -86,7 +88,7 @@ class _ExpensasMoradorTabState extends State<ExpensasMoradorTab> {
                         const SizedBox(height: 12),
                         _HelpListener(
                           helpEnabled: _helpEnabled,
-                          helpText: 'Volver a cargar expensas.',
+                          helpText: l10n.helpExpensaReload,
                           child: FilledButton.icon(
                             onPressed: _refresh,
                             icon: const Icon(Icons.refresh),
@@ -135,7 +137,7 @@ class _ExpensasMoradorTabState extends State<ExpensasMoradorTab> {
                   margin: const EdgeInsets.only(bottom: 12),
                   child: _HelpableTile(
                     helpEnabled: _helpEnabled,
-                    helpText: 'Abrir detalle de la expensa.',
+                    helpText: l10n.helpExpensaDetail,
                     onTap: () => _openDetalle(expensa),
                     child: ListTile(
                       title: Text(

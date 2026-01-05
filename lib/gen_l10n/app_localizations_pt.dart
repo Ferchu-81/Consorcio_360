@@ -258,4 +258,138 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settingsAppVersion => 'Versão do app';
+
+  @override
+  String get helpContextualTitle => 'Ajuda contextual';
+
+  @override
+  String get helpContextualDescription =>
+      'Mantenha pressionado por 1 segundo para ver uma dica rápida. Você pode desativar quando quiser.';
+
+  @override
+  String get helpContextualEnable => 'Ativar ajuda';
+
+  @override
+  String get helpContextualDisable => 'Desativar ajuda';
+
+  @override
+  String get helpSectionTitle => 'Ajuda';
+
+  @override
+  String get helpContextualSwitchSubtitle =>
+      'Pressão longa (1s) para ver explicações';
+
+  @override
+  String get helpMainNotifications => 'Ver notificações e avisos.';
+
+  @override
+  String get helpMainSettings => 'Abrir configurações do app.';
+
+  @override
+  String get helpMainChangeContext => 'Trocar consórcio, unidade ou função.';
+
+  @override
+  String get helpMainLogout => 'Sair da sessão.';
+
+  @override
+  String get helpDashboardExpensasSummary =>
+      'Resumo das despesas do último ano.';
+
+  @override
+  String get helpDashboardReclamosSummary =>
+      'Resumo de reclamações ativas e resolvidas.';
+
+  @override
+  String get helpDashboardBasesLegales => 'Abrir bases legais do consórcio.';
+
+  @override
+  String get helpSettingsProfile => 'Ver e editar seus dados pessoais.';
+
+  @override
+  String get helpSettingsNotifications =>
+      'Escolha quais avisos deseja receber.';
+
+  @override
+  String get helpSettingsBasesLegales => 'Acesse regulamentos e normas.';
+
+  @override
+  String get helpSettingsUnidad => 'Informações declaradas da sua unidade.';
+
+  @override
+  String get helpSettingsReglasConsorcio => 'Regras e votações do consórcio.';
+
+  @override
+  String get helpSettingsConsorcioConfig =>
+      'Configurações globais do consórcio.';
+
+  @override
+  String get helpSettingsAmenitiesAdmin => 'Administrar amenities e reservas.';
+
+  @override
+  String get helpSettingsAmenitiesUser => 'Ver e reservar amenities.';
+
+  @override
+  String get helpSettingsAppVersion => 'Versão instalada do app.';
+
+  @override
+  String get helpSettingsLogout => 'Sair da sua conta.';
+
+  @override
+  String get helpReclamoNew => 'Criar uma nova reclamação.';
+
+  @override
+  String get helpReclamoDetail => 'Abrir detalhes da reclamação.';
+
+  @override
+  String get helpReclamoReloadConsorcio =>
+      'Recarregar reclamações do consórcio.';
+
+  @override
+  String get helpExpensaNew => 'Criar uma nova despesa.';
+
+  @override
+  String get helpExpensaDetail => 'Abrir detalhes da despesa.';
+
+  @override
+  String get helpExpensaReload => 'Recarregar despesas.';
+
+  @override
+  String get helpExpensaDateFrom => 'Selecionar período DE';
+
+  @override
+  String get helpExpensaDateTo => 'Selecionar período ATÉ';
+
+  @override
+  String get helpPagoDetail => 'Detalhes do pagamento.';
+
+  @override
+  String get helpInboxToggleAllOn => 'Mostrar apenas este contexto';
+
+  @override
+  String get helpInboxToggleAllOff => 'Mostrar todos os meus contextos';
+
+  @override
+  String get helpInboxShowAllTooltip => 'Ver tudo';
+
+  @override
+  String get helpInboxShowContextTooltip => 'Ver contexto';
+
+  @override
+  String get helpInboxMarkAllRead => 'Marcar tudo como lido.';
+
+  @override
+  String get helpInboxMarkAsRead => 'Marcar como lido.';
+
+  @override
+  String get helpInboxAlreadyRead => 'Já está lida.';
+
+  @override
+  String get helpInboxSnackShowAll => 'Mostrando todas as notificações.';
+
+  @override
+  String get helpInboxSnackShowContext => 'Mostrando apenas o contexto atual.';
+
+  @override
+  String get helpInboxShowAllRestricted =>
+      'Somente administradores podem ver tudo.';
 }

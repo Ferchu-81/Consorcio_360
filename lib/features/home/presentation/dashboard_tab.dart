@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:consorcio_360/core/i18n/role_label.dart';
 import 'package:consorcio_360/data/models/usuario_contexto.dart';
+import 'package:consorcio_360/gen_l10n/app_localizations.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -233,6 +234,7 @@ class _DashboardTabState extends State<DashboardTab> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final nombre = _displayName ?? 'Usuario';
+    final l10n = AppLocalizations.of(context);
 
     return Stack(
       children: [
@@ -271,13 +273,13 @@ class _DashboardTabState extends State<DashboardTab> {
 
               _HelpListener(
                 helpEnabled: _helpEnabled,
-                helpText: 'Resumen de expensas del ultimo ano.',
+                helpText: l10n.helpDashboardExpensasSummary,
                 child: _buildExpensasCard(theme),
               ),
               const SizedBox(height: 16),
               _HelpListener(
                 helpEnabled: _helpEnabled,
-                helpText: 'Resumen de reclamos activos y resueltos.',
+                helpText: l10n.helpDashboardReclamosSummary,
                 child: _buildReclamosCard(theme),
               ),
               const SizedBox(height: 16),
@@ -506,12 +508,13 @@ class _DashboardTabState extends State<DashboardTab> {
   }
 
   Widget _buildBasesLegalesCard(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       elevation: 1,
       child: _HelpableTile(
         helpEnabled: _helpEnabled,
-        helpText: 'Abrir bases legales del consorcio.',
+        helpText: l10n.helpDashboardBasesLegales,
         onTap: () {
           Navigator.of(context).pushNamed('/bases-legales');
         },

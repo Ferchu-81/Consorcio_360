@@ -6,6 +6,7 @@ import 'package:consorcio_360/data/models/pago_expensa.dart';
 import 'package:consorcio_360/data/models/usuario_contexto.dart';
 import 'package:consorcio_360/data/repositories/expensas_repository.dart';
 import 'package:consorcio_360/features/expensas/presentation/expensas_utils.dart';
+import 'package:consorcio_360/gen_l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String _prefHelpEnabledKey = 'ui_help_enabled';
@@ -84,6 +85,7 @@ class _PagosTabState extends State<PagosTab> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return RefreshIndicator(
       onRefresh: _refresh,
@@ -154,7 +156,7 @@ class _PagosTabState extends State<PagosTab> {
 
               return _HelpListener(
                 helpEnabled: _helpEnabled,
-                helpText: 'Detalle de pago registrado.',
+                helpText: l10n.helpPagoDetail,
                 child: Card(
                 margin: const EdgeInsets.fromLTRB(12, 8, 12, 4),
                 shape: RoundedRectangleBorder(

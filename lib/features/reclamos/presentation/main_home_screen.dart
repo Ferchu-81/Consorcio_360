@@ -50,8 +50,8 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
         await PushTokenService.instance.ensureInitializedAndSync();
-      } catch (_) {
-        // si falla el push, NO debe romper la app
+      } catch (e, st) {
+        debugPrint('PushTokenService init failed: $e\n$st');
       }
       _setupPushOpenHandlers();
     });
@@ -424,6 +424,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
   Widget build(BuildContext context) {
     final current = context.watch<CurrentContextNotifier>();
     final contexto = current.current;
+    final l10n = AppLocalizations.of(context);
 
     if (contexto == null) {
       return Scaffold(
@@ -480,12 +481,12 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
         actions: [
           _HelpListener(
             helpEnabled: _helpEnabled,
-            helpText: 'Ver notificaciones y avisos.',
+            helpText: l10n.helpMainNotifications,
             child: _buildNotificationsAction(),
           ),
           _HelpListener(
             helpEnabled: _helpEnabled,
-            helpText: 'Abrir configuraci\u00f3n de la app.',
+            helpText: l10n.helpMainSettings,
             child: IconButton(
               icon: const Icon(Icons.settings),
               onPressed: () {
@@ -499,7 +500,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: _HelpListener(
               helpEnabled: _helpEnabled,
-              helpText: 'Cambiar consorcio, unidad o rol.',
+              helpText: l10n.helpMainChangeContext,
               child: ActionChip(
                 label: Text(roleLabel(context, contexto.rol)),
                 avatar: const Icon(Icons.person_outline, size: 18),
@@ -510,7 +511,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
           ),
           _HelpListener(
             helpEnabled: _helpEnabled,
-            helpText: 'Cerrar sesi\u00f3n.',
+            helpText: l10n.helpMainLogout,
             child: IconButton(
               tooltip: 'Cerrar sesi\u00f3n',
               icon: const Icon(Icons.logout),
@@ -603,6 +604,4 @@ class _HelpListenerState extends State<_HelpListener> {
     );
   }
 }
-
-
 

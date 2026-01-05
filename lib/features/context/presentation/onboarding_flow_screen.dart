@@ -715,7 +715,7 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
                 Expanded(
                   child: Text(
                     'El rol de Administrador del consorcio se gestiona despues. '
-                    'Por ahora solo definis tu rol como vecino.',
+                    'Por ahora solo definis tu rol como usuario.',
                   ),
                 ),
               ],
